@@ -4,4 +4,5 @@ package temperature
 // Formula: F = C * 9/5 + 32
 func CelsiusToFahrenheit(celsius float64) float64 {
 	// TODO(human): Implement the conversion
+	return (celsius * 9 / 5) + 32
 }
