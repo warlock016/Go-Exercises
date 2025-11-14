@@ -113,122 +113,49 @@ Result: "The quick\nbrown fox"
 
 ## Hints
 
-### Hint 1: Algorithm Structure
+### Hint 1: High-Level Algorithm
 
+**Basic Hint:** Word wrapping = split into words, build lines by accumulating words until maxWidth.
+
+**Intermediate Hint:** Use `strings.Fields` to split into words (handles multiple spaces correctly). Then iterate through words, building lines using `strings.Builder`. Keep a slice of completed lines.
+
+**Advanced Hint (if stuck):** The core challenge is the look-ahead calculation. Before adding each word, calculate: `futureLen = currentLine.Len() + (space if line not empty) + len(word)`. If `futureLen > maxWidth && currentLine.Len() > 0`, save current line and start fresh with the word.
+
+### Hint 2: Handling Edge Cases
+
+**Basic Hint:** What if the text is empty? What if maxWidth is 0 or negative? What if a word is longer than maxWidth?
+
+**Intermediate Hint:** Handle empty text and invalid maxWidth first. After splitting with `strings.Fields`, check if words slice is empty (text was only whitespace). For words longer than maxWidth, they should still go on their own line.
+
+**Advanced Hint (if stuck):** The condition `futureLen > maxWidth && currentLine.Len() > 0` is critical. The `currentLine.Len() > 0` part prevents wrapping before adding the first word, allowing long words to have their own line.
+
+### Hint 3: Don't Forget the Last Line
+
+**Basic Hint:** After your loop completes, you still have content in currentLine.
+
+**Intermediate Hint:** The loop only appends lines when wrapping occurs. The last line never triggers a wrap, so you must append it after the loop.
+
+**Advanced Hint (if stuck):**
 ```go
-import "strings"
-
-func WrapText(text string, maxWidth int) string {
-    // 1. Handle edge cases (empty string, maxWidth <= 0)
-    // 2. Split text into words
-    // 3. Build lines by adding words until maxWidth is reached
-    // 4. Join lines with \n
-}
-```
-
-### Hint 2: Splitting Words
-
-```go
-words := strings.Fields(text)
-// Fields splits on whitespace and removes empty strings
-// "hello  world" → ["hello", "world"]
-```
-
-### Hint 3: Building Lines
-
-```go
-var lines []string
-var currentLine strings.Builder
-
-for _, word := range words {
-    // Check if adding this word would exceed maxWidth
-    // If yes: save current line, start new line
-    // If no: add word to current line
-}
-
-// Don't forget to add the last line!
+// After loop ends
 if currentLine.Len() > 0 {
     lines = append(lines, currentLine.String())
 }
-
 return strings.Join(lines, "\n")
 ```
 
-### Hint 4: Length Calculation
+### Hint 4: Space Handling
 
-The tricky part is calculating the length BEFORE adding a word:
+**Basic Hint:** When do you add a space before a word? When don't you?
 
+**Intermediate Hint:** Only add a space if the current line already has content. This prevents leading spaces on new lines.
+
+**Advanced Hint (if stuck):**
 ```go
-// Length if we add this word
-newLength := currentLine.Len()
 if currentLine.Len() > 0 {
-    newLength++ // +1 for the space before the word
+    currentLine.WriteRune(' ')  // Add space before word
 }
-newLength += len(word)
-
-if newLength > maxWidth {
-    // Would exceed limit - wrap
-    lines = append(lines, currentLine.String())
-    currentLine.Reset()
-    currentLine.WriteString(word)
-} else {
-    // Fits - add to current line
-    if currentLine.Len() > 0 {
-        currentLine.WriteRune(' ')
-    }
-    currentLine.WriteString(word)
-}
-```
-
-### Hint 5: Full Solution Structure
-
-```go
-func WrapText(text string, maxWidth int) string {
-    // Edge cases
-    if text == "" {
-        return ""
-    }
-    if maxWidth <= 0 {
-        return text
-    }
-
-    words := strings.Fields(text)
-    if len(words) == 0 {
-        return ""
-    }
-
-    var lines []string
-    var currentLine strings.Builder
-
-    for _, word := range words {
-        // Calculate length if we add this word
-        futureLen := currentLine.Len()
-        if currentLine.Len() > 0 {
-            futureLen++ // space
-        }
-        futureLen += len(word)
-
-        if futureLen > maxWidth && currentLine.Len() > 0 {
-            // Wrap: save current line, start new
-            lines = append(lines, currentLine.String())
-            currentLine.Reset()
-            currentLine.WriteString(word)
-        } else {
-            // Add to current line
-            if currentLine.Len() > 0 {
-                currentLine.WriteRune(' ')
-            }
-            currentLine.WriteString(word)
-        }
-    }
-
-    // Add last line
-    if currentLine.Len() > 0 {
-        lines = append(lines, currentLine.String())
-    }
-
-    return strings.Join(lines, "\n")
-}
+currentLine.WriteString(word)
 ```
 
 ## Think About

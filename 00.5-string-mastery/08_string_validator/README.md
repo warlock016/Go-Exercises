@@ -119,114 +119,29 @@ ContainsOnly("", "abc")                // → true (empty string OK)
 
 ## Hints
 
-### Hint 1: IsValidEmail Structure
+### Hint 1: IsValidEmail Approach
 
-```go
-import "strings"
+**Basic Hint:** Think about the structure: local@domain.tld
 
-func IsValidEmail(s string) bool {
-    // 1. Count '@' symbols
-    atCount := strings.Count(s, "@")
-    if atCount != 1 {
-        return false
-    }
+**Intermediate Hint:** Use `strings.Count` to verify exactly one '@', then `strings.Split` to separate parts. Check that both parts exist and the domain contains a '.' that's not at the end.
 
-    // 2. Split on '@' to get local and domain
-    parts := strings.Split(s, "@")
-    local := parts[0]
-    domain := parts[1]
+**Advanced Hint (if stuck):** After splitting on '@', use `strings.Contains` to check for '.' in domain, and `strings.LastIndex` to verify the '.' isn't the last character.
 
-    // 3. Check local part exists
-    if len(local) == 0 {
-        return false
-    }
+### Hint 2: IsValidPassword Approach
 
-    // 4. Check domain contains '.'
-    if !strings.Contains(domain, ".") {
-        return false
-    }
+**Basic Hint:** Track multiple conditions during a single iteration.
 
-    // 5. Check there's content after last '.'
-    lastDot := strings.LastIndex(domain, ".")
-    if lastDot == len(domain)-1 {  // '.' is last char
-        return false
-    }
+**Intermediate Hint:** Use boolean flags (hasUpper, hasLower, hasDigit) and iterate through runes using unicode classification functions. Check length first as an early return.
 
-    return true
-}
-```
-
-### Hint 2: IsValidPassword Structure
-
-```go
-import "unicode"
-
-func IsValidPassword(s string) bool {
-    // Check length first
-    if len(s) < 8 {
-        return false
-    }
-
-    // Track what we've found
-    hasUpper := false
-    hasLower := false
-    hasDigit := false
-
-    // Check each rune
-    for _, r := range s {
-        if unicode.IsUpper(r) {
-            hasUpper = true
-        }
-        if unicode.IsLower(r) {
-            hasLower = true
-        }
-        if unicode.IsDigit(r) {
-            hasDigit = true
-        }
-    }
-
-    // All conditions must be true
-    return hasUpper && hasLower && hasDigit
-}
-```
+**Advanced Hint (if stuck):** Initialize three boolean flags to false. Loop through each rune with `for _, r := range s`, using `unicode.IsUpper(r)`, `unicode.IsLower(r)`, and `unicode.IsDigit(r)` to set flags. Return true only if all flags are true.
 
 ### Hint 3: ContainsOnly Approach
 
-**Strategy 1: Set-based (using a map)**
-```go
-func ContainsOnly(s string, allowed string) bool {
-    // Build a set of allowed runes
-    allowedSet := make(map[rune]bool)
-    for _, r := range allowed {
-        allowedSet[r] = true
-    }
+**Basic Hint:** Membership testing - is each character in the allowed set?
 
-    // Check each rune in s
-    for _, r := range s {
-        if !allowedSet[r] {
-            return false  // Found a rune not in allowed set
-        }
-    }
+**Intermediate Hint:** Two strategies exist: (1) Simple - use `strings.ContainsRune` for each character. (2) Efficient - build a `map[rune]bool` as a set first, then look up each character.
 
-    return true
-}
-```
-
-**Strategy 2: Using strings.ContainsRune**
-```go
-import "strings"
-
-func ContainsOnly(s string, allowed string) bool {
-    for _, r := range s {
-        if !strings.ContainsRune(allowed, r) {
-            return false
-        }
-    }
-    return true
-}
-```
-
-Strategy 1 is more efficient for long strings (O(n) vs O(n*m)).
+**Advanced Hint (if stuck):** For the map approach, iterate through allowed string to build the set: `allowedSet := make(map[rune]bool)`. Then iterate through s and return false immediately if `!allowedSet[r]`.
 
 ### Hint 4: Edge Cases to Consider
 

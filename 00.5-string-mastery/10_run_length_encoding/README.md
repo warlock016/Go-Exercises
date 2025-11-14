@@ -131,112 +131,20 @@ Decode("13a")            // → "aaaaaaaaaaaaa"
 
 ### Hint 1: Encode Algorithm
 
+**Basic Hint:** Track consecutive identical characters - count them, then write count+char when character changes.
+
+**Intermediate Hint:** Convert to `[]rune` first. Initialize tracking variables: `count = 1` and `currentRune = runes[0]`. Loop from index 1, comparing each rune to currentRune. When different, write the run with `strconv.Itoa(count)` + currentRune.
+
+**Advanced Hint (if stuck):** The critical bug is forgetting the last run. Your loop only writes runs when character changes, so after the loop completes, you must write one final run for the last group of characters.
+
+### Hint 2: Decode Algorithm - Parsing
+
+**Basic Hint:** Parse alternating number and character pairs: read digits, convert to count, read character, output it count times.
+
+**Intermediate Hint:** Convert to `[]rune` and manually track index. Use nested loop pattern: outer loop runs while i < len(runes), inner loop reads consecutive digits into a string. Use `unicode.IsDigit(runes[i])` and `strconv.Atoi` to parse the count.
+
+**Advanced Hint (if stuck):** The multi-digit challenge requires reading ALL consecutive digits before converting:
 ```go
-func Encode(s string) string {
-    if s == "" {
-        return ""
-    }
-
-    var builder strings.Builder
-    runes := []rune(s)
-
-    count := 1
-    currentRune := runes[0]
-
-    for i := 1; i < len(runes); i++ {
-        if runes[i] == currentRune {
-            count++  // Same character, increment count
-        } else {
-            // Different character, write current run
-            builder.WriteString(strconv.Itoa(count))
-            builder.WriteRune(currentRune)
-
-            // Start new run
-            currentRune = runes[i]
-            count = 1
-        }
-    }
-
-    // Write the last run
-    builder.WriteString(strconv.Itoa(count))
-    builder.WriteRune(currentRune)
-
-    return builder.String()
-}
-```
-
-### Hint 2: Decode Algorithm
-
-Decoding is trickier - you need to parse numbers and characters:
-
-```go
-import (
-    "strconv"
-    "strings"
-    "unicode"
-)
-
-func Decode(s string) string {
-    if s == "" {
-        return ""
-    }
-
-    var builder strings.Builder
-    runes := []rune(s)
-    i := 0
-
-    for i < len(runes) {
-        // Read the count (one or more digits)
-        countStr := ""
-        for i < len(runes) && unicode.IsDigit(runes[i]) {
-            countStr += string(runes[i])
-            i++
-        }
-
-        // Convert count to int
-        count, _ := strconv.Atoi(countStr)
-
-        // Read the character
-        if i < len(runes) {
-            char := runes[i]
-            // Write 'count' copies of 'char'
-            for j := 0; j < count; j++ {
-                builder.WriteRune(char)
-            }
-            i++
-        }
-    }
-
-    return builder.String()
-}
-```
-
-### Hint 3: Handling the Last Group
-
-A common mistake in Encode:
-
-```go
-// BUG - forgets last group
-for i := 1; i < len(runes); i++ {
-    // ... process runs ...
-}
-return builder.String()  // Last run never written!
-
-// FIX - write last run after loop
-// ... loop ...
-builder.WriteString(strconv.Itoa(count))
-builder.WriteRune(currentRune)
-```
-
-### Hint 4: Parsing Multi-Digit Numbers
-
-In Decode, counts can be multi-digit:
-
-```go
-// WRONG - only reads one digit
-count := int(runes[i] - '0')
-
-// RIGHT - read all consecutive digits
 countStr := ""
 for i < len(runes) && unicode.IsDigit(runes[i]) {
     countStr += string(runes[i])
@@ -244,6 +152,28 @@ for i < len(runes) && unicode.IsDigit(runes[i]) {
 }
 count, _ := strconv.Atoi(countStr)
 ```
+Then read the character and write it count times in a loop.
+
+### Hint 3: Common Pitfalls
+
+**Encode:**
+- Don't forget to write the last run after the loop ends
+- Convert to `[]rune` not `[]byte` for Unicode correctness
+- Initialize count to 1, not 0 (first character counts)
+
+**Decode:**
+- Multi-digit counts require a loop to read all digits
+- Remember to increment index after reading character
+- Handle empty string edge case
+
+### Hint 4: Testing Round-Trip
+
+**Verification:** For any string s, `Decode(Encode(s))` should equal s. Test with:
+- Simple runs: "aaa"
+- No runs: "abc"
+- Mixed: "aaabbc"
+- Unicode: "😀😀😀"
+- Edge: "" and "a"
 
 ## Think About
 

@@ -12,10 +12,11 @@ import (
 // (space, punctuation, digit, etc.) acts as a word boundary.
 //
 // Examples:
-//   ToTitleCase("hello world") → "Hello World"
-//   ToTitleCase("STOP SHOUTING") → "Stop Shouting"
-//   ToTitleCase("it's nice") → "It's Nice"
-//   ToTitleCase("hello-world") → "Hello-World"
+//
+//	ToTitleCase("hello world") → "Hello World"
+//	ToTitleCase("STOP SHOUTING") → "Stop Shouting"
+//	ToTitleCase("it's nice") → "It's Nice"
+//	ToTitleCase("hello-world") → "Hello-World"
 func ToTitleCase(s string) string {
 	// TODO(human): Implement title case conversion
 	//
@@ -61,6 +62,22 @@ func ToTitleCase(s string) string {
 
 	var builder strings.Builder
 	// Your code here
+
+	// col := []rune(s) // [h,e,l,l,o, ,w,o,r,l,d]
+	// var pos int = 0       // keep count of IsLetter sequences, resets to 0 when a non-letter character is encountered
+	flag := false // flag IsLetter
+
+	for _, v := range s {
+		if !flag && unicode.IsLetter(v) {
+			flag = true
+			builder.WriteRune(unicode.ToUpper(v))
+		} else if unicode.IsLetter(v) {
+			builder.WriteRune(unicode.ToLower(v))
+		} else {
+			flag = false
+			builder.WriteRune(v)
+		}
+	}
 
 	return builder.String()
 }

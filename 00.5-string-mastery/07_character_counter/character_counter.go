@@ -9,9 +9,10 @@ import (
 // It returns a map where keys are runes and values are their counts.
 //
 // Examples:
-//   CountRunes("hello") → map[h:1 e:1 l:2 o:1]
-//   CountRunes("aabbcc") → map[a:2 b:2 c:2]
-//   CountRunes("") → map[] (empty map)
+//
+//	CountRunes("hello") → map[h:1 e:1 l:2 o:1]
+//	CountRunes("aabbcc") → map[a:2 b:2 c:2]
+//	CountRunes("") → map[] (empty map)
 func CountRunes(s string) map[rune]int {
 	// TODO(human): Implement rune counting
 	//
@@ -32,7 +33,12 @@ func CountRunes(s string) map[rune]int {
 	//   }
 	//   return counts
 
-	counts := make(map[rune]int)
+	// counts := make(map[rune]int)
+	counts := map[rune]int{}
+
+	for _, v := range s {
+		counts[v]++
+	}
 	// Your code here
 
 	return counts
@@ -43,10 +49,11 @@ func CountRunes(s string) map[rune]int {
 // If the string is empty, it returns the zero value for rune (0 or '\x00').
 //
 // Examples:
-//   MostCommon("hello") → 'l' (appears 2 times)
-//   MostCommon("aabbcc") → 'a' (tie: all appear twice, 'a' is first)
-//   MostCommon("mississippi") → 'i' (appears 4 times)
-//   MostCommon("") → '\x00' (zero value)
+//
+//	MostCommon("hello") → 'l' (appears 2 times)
+//	MostCommon("aabbcc") → 'a' (tie: all appear twice, 'a' is first)
+//	MostCommon("mississippi") → 'i' (appears 4 times).   idx [0,1,2,3,4,5,6,7,8,9,0], [0:1, 1:4, 2:4, 3:2]
+//	MostCommon("") → '\x00' (zero value)
 func MostCommon(s string) rune {
 	// TODO(human): Implement finding the most common rune
 	//
@@ -84,7 +91,32 @@ func MostCommon(s string) rune {
 	//   return mostCommon
 
 	// Your code here
-	return 0
+	// we need to check which element map[r] has the highest count && the lowest r
+	// counts := make(map[rune]int) // example: mississippi -> [m:1, i:4, s:4, p:2] or [s:4, p:2, i:4, m:1] or [s:4, p:2, m:1, i:4] ... -> 4! == 24 permutations
+	counts := map[rune]int{}
+
+	for _, r := range s {
+		counts[r]++
+	} // this loop can be omitted by reusing the previous function CountRunes(s)
+
+	// counts := CountRunes(s)
+
+	seen := make(map[rune]bool)
+	var mostCommon rune
+	var highestCount int
+
+	for _, r := range s { // we iterate over the string runes to preserve order or runes, which map does not guarantee!
+		if !seen[r] {
+
+			if counts[r] > highestCount /* && r < mostCommon */ {
+				highestCount = counts[r]
+				mostCommon = r
+			}
+			seen[r] = true // can be before or after the inner if conditional
+		}
+	}
+
+	return mostCommon
 }
 
 // IsAnagram checks if two strings are anagrams of each other.
@@ -92,10 +124,11 @@ func MostCommon(s string) rune {
 // This function is case-insensitive and ignores spaces.
 //
 // Examples:
-//   IsAnagram("listen", "silent") → true
-//   IsAnagram("Hello", "hello") → true (case insensitive)
-//   IsAnagram("Astronomer", "Moon starer") → true (ignore spaces)
-//   IsAnagram("hello", "world") → false
+//
+//	IsAnagram("listen", "silent") → true
+//	IsAnagram("Hello", "hello") → true (case insensitive)
+//	IsAnagram("Astronomer", "Moon starer") → true (ignore spaces)
+//	IsAnagram("hello", "world") → false
 func IsAnagram(s1, s2 string) bool {
 	// TODO(human): Implement anagram detection
 	//
@@ -149,9 +182,33 @@ func IsAnagram(s1, s2 string) bool {
 	//   return true
 
 	_ = strings.Builder{} // Hint: use this for normalization
-	_ = unicode.ToLower    // Hint: use this for case conversion
-	_ = unicode.IsSpace    // Hint: use this to detect spaces
+	_ = unicode.ToLower   // Hint: use this for case conversion
+	_ = unicode.IsSpace   // Hint: use this to detect spaces
 
 	// Your code here
-	return false
+
+	// var a strings.Builder
+	// var a []rune
+	a := make(map[rune]int)
+	for _, r := range s1 {
+		if unicode.IsLetter(r) {
+			// a.WriteRune(unicode.ToLower(r))
+			a[unicode.ToLower(r)]++
+		}
+	}
+
+	// var b strings.Builder
+	for _, r := range s2 {
+		if unicode.IsLetter(r) {
+			a[unicode.ToLower(r)]--
+		}
+	}
+
+	for _, v := range a {
+		if v != 0 {
+			return false
+		}
+	}
+
+	return true
 }

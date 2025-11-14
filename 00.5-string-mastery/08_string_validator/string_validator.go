@@ -16,56 +16,68 @@ import (
 //   - Domain must have at least one character after the last '.'
 //
 // Examples:
-//   IsValidEmail("user@example.com") → true
-//   IsValidEmail("invalid") → false (no @)
-//   IsValidEmail("@example.com") → false (no local part)
-//   IsValidEmail("user@nodot") → false (domain has no .)
+//
+//	IsValidEmail("user@example.com") → true
+//	IsValidEmail("invalid") → false (no @)
+//	IsValidEmail("@example.com") → false (no local part)
+//	IsValidEmail("user@nodot") → false (domain has no .)
 func IsValidEmail(s string) bool {
-	// TODO(human): Implement email validation
+	// TODO(human): Implement basic email validation
 	//
-	// APPROACH:
-	// 1. Count '@' symbols (must be exactly 1)
-	// 2. Split on '@' to get local and domain parts
-	// 3. Validate local part is not empty
-	// 4. Validate domain contains '.'
-	// 5. Validate domain doesn't end with '.'
+	// High-level: Verify the @ symbol exists exactly once, and check structure
+	// around it (local and domain parts, domain must have a dot, etc.)
 	//
-	// USEFUL FUNCTIONS:
-	// - strings.Count(s, "@") → count occurrences of @
-	// - strings.Split(s, "@") → split into [local, domain]
-	// - strings.Contains(domain, ".") → check for dot
-	// - strings.LastIndex(domain, ".") → find position of last dot
+	// Consider: strings.Count, strings.Split, strings.Contains, strings.LastIndex
+	// Documentation: https://pkg.go.dev/strings
 	//
-	// PSEUDOCODE:
-	//   atCount := strings.Count(s, "@")
-	//   if atCount != 1 {
-	//       return false
-	//   }
-	//
-	//   parts := strings.Split(s, "@")
-	//   local := parts[0]
-	//   domain := parts[1]
-	//
-	//   if len(local) == 0 {
-	//       return false
-	//   }
-	//
-	//   if !strings.Contains(domain, ".") {
-	//       return false
-	//   }
-	//
-	//   lastDot := strings.LastIndex(domain, ".")
-	//   if lastDot == len(domain)-1 {
-	//       return false
-	//   }
-	//
-	//   return true
+	// Pattern: Validation involves checking multiple conditions sequentially
+	// Think: What makes an email valid structurally? Break the problem into
+	// smaller checks (@ presence, parts exist, domain has dot, etc.)
 
 	_ = strings.Count // Hint: count @ symbols
 	_ = strings.Split // Hint: split on @ to get parts
 
 	// Your code here
-	return false
+	// 1. Split string into three slices (prefix, suffix), by using the rune "@" as separator
+	// 2. Check if prefix, suffix exist
+	// 3. Check if prefix, suffix and domain are in the right order [prefix, suffix, domain]
+
+	if strings.Count(s, "@") != 1 { // if either no "@" or multiple "@", then invalid email string -> early return
+		return false
+	}
+
+	parts := strings.Split(s, "@") // split string into prefix and suffix via "@" separator
+	// pos := strings.IndexRune(s, '@')
+	prefix := parts[0] // contains any string before the "@"
+	suffix := parts[1] // contains any string after the "@"
+
+	if strings.Count(suffix, ".") == 0 { // check if suffix contains at least one "."
+		return false
+	}
+
+	if len(prefix) == 0 || len(suffix) == 0 { // if prefix is empty, then invalid email address (e.g. @hotmail.com, john.doe@ )
+		return false
+	}
+
+	// prefCheck := true
+
+	for i, r := range prefix {
+		if i == len(prefix)-1 && !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			return false
+		}
+	}
+
+	// failing edge cases: domain..com, b.c, sub.domain.example.com, example.com, domain..com
+	for i, r := range suffix {
+		if i == 0 && !unicode.IsDigit(r) && !unicode.IsLetter(r) {
+			return false
+		}
+		if i == len(suffix)-1 && !unicode.IsDigit(r) && !unicode.IsLetter(r) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // IsValidPassword validates password strength.
@@ -77,52 +89,53 @@ func IsValidEmail(s string) bool {
 //   - Contains at least one digit
 //
 // Examples:
-//   IsValidPassword("Strong123") → true
-//   IsValidPassword("weak") → false (too short, no uppercase, no digit)
-//   IsValidPassword("NoDigits") → false (no digit)
+//
+//	IsValidPassword("Strong123") → true
+//	IsValidPassword("weak") → false (too short, no uppercase, no digit)
+//	IsValidPassword("NoDigits") → false (no digit)
 func IsValidPassword(s string) bool {
 	// TODO(human): Implement password validation
 	//
-	// APPROACH:
-	// 1. Check length (>= 8)
-	// 2. Use boolean flags to track: hasUpper, hasLower, hasDigit
-	// 3. Iterate through runes, set flags when conditions met
-	// 4. Return true only if ALL flags are true
+	// High-level: Check length requirement, then iterate to verify presence of
+	// required character types (uppercase, lowercase, digit)
 	//
-	// USEFUL FUNCTIONS:
-	// - unicode.IsUpper(r) → true if rune is uppercase letter
-	// - unicode.IsLower(r) → true if rune is lowercase letter
-	// - unicode.IsDigit(r) → true if rune is digit
+	// Consider: unicode.IsUpper, unicode.IsLower, unicode.IsDigit
+	// Documentation: https://pkg.go.dev/unicode
 	//
-	// PSEUDOCODE:
-	//   if len(s) < 8 {
-	//       return false
-	//   }
-	//
-	//   hasUpper := false
-	//   hasLower := false
-	//   hasDigit := false
-	//
-	//   for _, r := range s {
-	//       if unicode.IsUpper(r) {
-	//           hasUpper = true
-	//       }
-	//       if unicode.IsLower(r) {
-	//           hasLower = true
-	//       }
-	//       if unicode.IsDigit(r) {
-	//           hasDigit = true
-	//       }
-	//   }
-	//
-	//   return hasUpper && hasLower && hasDigit
+	// Pattern: Use boolean flags to track whether requirements have been met
+	// Think: How can you track multiple conditions during a single iteration?
+	// All conditions must be true for password to be valid.
 
 	_ = unicode.IsUpper // Hint: check for uppercase
 	_ = unicode.IsLower // Hint: check for lowercase
 	_ = unicode.IsDigit // Hint: check for digits
 
 	// Your code here
-	return false
+
+	var chars []rune
+	containsDigit := false
+	containsUpper := false
+	containsLower := false
+	matchLen := false
+
+	for _, r := range s {
+		chars = append(chars, r)
+
+		if unicode.IsDigit(r) {
+			containsDigit = true
+		}
+		if unicode.IsUpper(r) {
+			containsUpper = true
+		}
+
+		if unicode.IsLower(r) {
+			containsLower = true
+		}
+	}
+
+	matchLen = len(chars) >= 8
+
+	return (containsDigit && containsLower && containsUpper && matchLen)
 }
 
 // ContainsOnly checks if string s contains only characters from the allowed set.
@@ -130,49 +143,42 @@ func IsValidPassword(s string) bool {
 // Returns false if s contains any character not in allowed.
 //
 // Examples:
-//   ContainsOnly("abc", "abcdef") → true
-//   ContainsOnly("abc!", "abc") → false (! not allowed)
-//   ContainsOnly("", "abc") → true (empty string OK)
+//
+//	ContainsOnly("abc", "abcdef") → true
+//	ContainsOnly("abc!", "abc") → false (! not allowed)
+//	ContainsOnly("", "abc") → true (empty string OK)
 func ContainsOnly(s string, allowed string) bool {
 	// TODO(human): Implement character set validation
 	//
-	// APPROACH 1 (Efficient): Use a map as a set
-	// 1. Build a map of allowed runes (map[rune]bool)
-	// 2. For each rune in s, check if it's in the map
-	// 3. Return false if any rune is not in the map
+	// High-level: Check if every character in s exists in the allowed set
 	//
-	// APPROACH 2 (Simple): Use strings.ContainsRune
-	// 1. For each rune in s, use strings.ContainsRune(allowed, r)
-	// 2. Return false if any rune is not found
+	// Consider: strings.ContainsRune OR use a map[rune]bool as a set
+	// Documentation: https://pkg.go.dev/strings#ContainsRune
 	//
-	// Approach 1 is faster for long strings!
-	//
-	// PSEUDOCODE (Approach 1):
-	//   // Build set of allowed characters
-	//   allowedSet := make(map[rune]bool)
-	//   for _, r := range allowed {
-	//       allowedSet[r] = true
-	//   }
-	//
-	//   // Check each character in s
-	//   for _, r := range s {
-	//       if !allowedSet[r] {
-	//           return false
-	//       }
-	//   }
-	//
-	//   return true
-	//
-	// PSEUDOCODE (Approach 2):
-	//   for _, r := range s {
-	//       if !strings.ContainsRune(allowed, r) {
-	//           return false
-	//       }
-	//   }
-	//   return true
+	// Pattern: Membership testing - is each element in the allowed collection?
+	// Think: Two approaches possible - simple iteration with ContainsRune, or
+	// build a set first for O(1) lookups. Which is better for long strings?
 
 	_ = strings.ContainsRune // Hint: one approach uses this
 
 	// Your code here
-	return false
+
+	chars := []rune{}
+	refChars := make(map[rune]bool)
+
+	for _, r := range s {
+		chars = append(chars, r)
+	}
+
+	for _, r := range allowed {
+		refChars[r] = true
+	}
+
+	for _, r := range s {
+		if !refChars[r] {
+			return false
+		}
+	}
+
+	return true
 }
