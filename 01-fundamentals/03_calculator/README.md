@@ -62,35 +62,6 @@ Modulo(10, 0)       // → 0, error
 1. Open `calc.go`
 2. Implement all functions
 3. Run `go test -v`
-4. Create `EXPLANATION.md`
-
-## Hints
-
-### Basic Operators
-```go
-sum := a + b
-diff := a - b
-product := a * b
-quotient := a / b       // Integer division (truncates)
-remainder := a % b      // Modulo operator
-```
-
-### Division by Zero
-```go
-import "errors"
-
-if b == 0 {
-    return 0, errors.New("division by zero")
-}
-```
-
-### Multiple Return Values
-```go
-func Divide(a, b int) (int, int, error) {
-    // quotient, remainder, error
-    return a / b, a % b, nil
-}
-```
 
 ## What This Teaches
 

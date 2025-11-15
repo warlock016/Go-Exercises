@@ -1,5 +1,9 @@
 package csvparser
 
+import (
+	"strings"
+)
+
 // ParseCSV parses a single line of CSV with quoted fields and escape sequences
 func ParseCSV(line string) []string {
 	// TODO(human): Implement the CSV parser
@@ -28,5 +32,38 @@ func ParseCSV(line string) []string {
 	// Hint: Remember to check bounds before lookahead: i+1 < len(line)
 	// Hint: You'll need to import "strings" package for strings.Builder
 
-	return nil // TODO(human): Replace with your implementation
+	chars := []rune(line)
+	var word strings.Builder
+	var tokens []string
+	inQuotes := false
+
+	// Example: ""Ulf"","Bob","Cat"
+	for i := 0; i < len(chars); i++ {
+		switch inQuotes {
+		case true:
+			if chars[i] == '"' {
+				if i+1 < len(chars) && chars[i+1] == '"' {
+					word.WriteRune(chars[i])
+					i++
+				} else {
+					inQuotes = false
+				}
+			} else {
+				word.WriteRune(chars[i])
+			}
+
+		case false:
+			switch chars[i] {
+			case ',':
+				tokens = append(tokens, word.String())
+				word.Reset()
+			case '"':
+				inQuotes = true
+			default:
+				word.WriteRune(chars[i])
+			}
+		}
+	}
+
+	return tokens // TODO(human): Replace with your implementation
 }

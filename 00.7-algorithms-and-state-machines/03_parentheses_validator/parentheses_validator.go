@@ -22,5 +22,23 @@ func IsValid(s string) bool {
 	//
 	// Hint: Start with `stack := []rune{}`
 
+	stack := []rune{}
+
+	for _, r := range s {
+		switch r {
+		case '(':
+			stack = append(stack, r)
+		case ')':
+			if len(stack) == 0 {
+				return false
+			}
+			stack = stack[:len(stack)-1]
+		}
+	}
+
+	if len(stack) == 0 {
+		return true
+	}
+
 	return false // TODO(human): Replace with your implementation
 }

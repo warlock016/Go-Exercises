@@ -51,6 +51,13 @@ func tokenize(expr string) ([]Token, error) {
 	//
 	// Example: "2 + 3" → [NUMBER(2), PLUS, NUMBER(3), EOF]
 
+	// for _, r := range expr {
+	// 	switch unicode.IsDigit(r) {
+	// 	case true:
+	// 	case false:
+	// 	}
+	// }
+
 	return nil, nil
 }
 
