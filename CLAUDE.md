@@ -89,8 +89,15 @@ go test -bench=. -benchmem
 
 **Required files per exercise:**
 1. `README.md` - Include: Learning Goal, Problem Description, Function Signatures, Examples (3-5), Instructions, Hints (progressive: basic → intermediate → solution), "Think About" questions, "What This Teaches" section
-2. `{name}.go` - Function stubs with `// TODO(human):` comments, inline pseudocode for complex algorithms
+2. `{name}.go` - **MINIMAL SCAFFOLDING ONLY**: Function signatures, brief 1-line comments describing WHAT (not HOW), TODO(human) markers. NO pre-defined structs, NO commented-out solutions, NO step-by-step pseudocode
 3. `{name}_test.go` - Table-driven tests (6-8+ cases), edge cases (empty, Unicode, boundaries), benchmarks for performance awareness
+
+**IMPORTANT - Scaffolding Philosophy (Updated 2025-11-16):**
+- Student prefers **productive struggle** over hand-holding
+- .go files should have MINIMAL guidance (function signature + brief comment only)
+- Let student define structs, figure out algorithms, make mistakes, and learn from errors
+- READMEs can be detailed (student chooses whether to read them)
+- Remove: commented-out solutions, step-by-step pseudocode, pre-defined types, implementation hints
 
 **Exercise Naming Convention:**
 - Directory: `XX_exercise_name/` (e.g., `01_temperature/`, `05_reverse_string/`)
@@ -126,13 +133,15 @@ When this student is working:
 - "Learn by Doing" prompts for 2-10 line code pieces when generating 20+ lines involving design decisions
 - Explanations of WHY, not just HOW
 - Connections to broader patterns
-- TODO(human) markers showing exactly where to code
+- Minimal TODO(human) markers (brief directive only, no implementation steps)
 
 **DON'T:**
 - Generate complete solutions upfront (violates anti-AI-reliance protocol for Weeks 1-4)
 - Use TodoWrite tool for simple tasks (only for complex multi-step work)
 - Create documentation files (.md) unless explicitly requested
 - Skip explanation of idiomatic Go patterns vs working-but-suboptimal code
+- **Add excessive scaffolding in .go files** (no pre-defined structs, no commented-out solutions, no step-by-step pseudocode)
+- **Provide "how to implement" hints in TODO markers** (describe outcome, not steps)
 
 **Request human collaboration when:**
 - Design decisions with multiple valid approaches
@@ -210,6 +219,37 @@ for _, tt := range tests {
 - Hints (progressive: basic concept → intermediate → full solution)
 - "Think About" (3-4 questions for deeper understanding)
 - "What This Teaches" (key takeaways)
+
+**Note:** READMEs can be detailed - student has agency to read or skip them. The key is keeping .go files minimal.
+
+### Exercise .go File Template (MINIMAL SCAFFOLDING)
+```go
+package exercise_name
+
+// TODO(human): Import required packages if needed
+
+// TODO(human): Define any required types/structs (if applicable)
+
+// FunctionName does X and returns Y
+func FunctionName(params) returnType {
+    // TODO(human): Implement
+    return zeroValue
+}
+```
+
+**What NOT to include:**
+- ❌ Pre-defined struct definitions with fields
+- ❌ Commented-out solutions
+- ❌ Step-by-step pseudocode ("Create slice, then iterate, then return")
+- ❌ Specific function hints ("Use strings.Fields", "Use math.Sqrt")
+- ❌ Implementation details in comments
+
+**What TO include:**
+- ✅ Package declaration
+- ✅ Function signatures (for test compatibility)
+- ✅ Brief 1-line comment describing function purpose
+- ✅ Minimal TODO(human) marker
+- ✅ Zero-value return statement (so code compiles)
 
 ### Success Criteria Updates
 When student completes exercises, update `PROGRESS.md`:
