@@ -47,27 +47,123 @@ DrawBox(3, 3, '+')
 
 ### DrawDiamond
 ```go
-DrawDiamond(3)
-// Returns:
-//   *
-//  ***
-// *****
-//  ***
-//   *
 
-DrawDiamond(1)
-// Returns:
-// *
+// Row Count conjecture: (2x - 1) -> 2 - 1 == 0 (Approved)
+// Max Space Count conjecture: x - diff == (2x - 1) - x == x - 1 (Approved)
+// Max Symbol Count conjecture: 2x - 1 (Approved)
 
-DrawDiamond(4)
+DrawDiamond(1) 
+// 1 row // dif 0 // 2 - 1 == 1
+// max space // 1 - 1 == 0
+// max symbol // 1 - 1 == 0
 // Returns:
-//    *
-//   ***
-//  *****
-// *******
-//  *****
-//   ***
-//    *
+// *      1 symbol, 0 spaces
+
+DrawDiamond(2) 
+// 3 rows // diff 1 // 4 - 1 == 3
+// max space // 2 - 1 == 1
+// max symbol // 4 - 1 == 3
+
+// Returns:
+//   *      1 symbol, 1 space
+//  ***     3 symbols, 0 space
+//   *      1 symbol, 1 space
+
+DrawDiamond(3) 
+// 5 rows // diff 2 // 6  - 1 == 5
+// max space // 3 - 1 == 2
+// max symbol // 6 - 1 
+
+// Returns:
+//   *      1 symbol, 2 space
+//  ***     3 symbol, 1 space
+// *****    5 symbol, 0 space
+//  ***     3 symbol, 1 space
+//   *      1 symbol, 2 space
+
+DrawDiamond(4) 
+// 7 rows // diff 3 // 8 - 1 == 7
+// max space // 4 - 1 == 3
+// max symbol // 8 - 1 == 7
+
+// Returns:
+//    *     1 symbol, 3 space
+//   ***    3 symbol, 2 space
+//  *****   5 symbol, 1 space
+// *******  7 symbol, 0 space
+//  *****   5 symbol, 1 space
+//   ***    3 symbol, 2 space
+//    *     1 symbol, 3 space
+
+DrawDiamond(5) 
+// 9 rows // diff 4 // 10 - 1 == 9
+
+// Returns:
+//     *        1 symbol, 4 space
+//    ***       3 symbol, 3 space
+//   *****      5 symbol, 2 space
+//  *******     7 symbol, 1 space
+// *********    9 symbol, 0 space
+//  *******     7 symbol, 1 space
+//   *****      5 symbol, 2 space
+//    ***       3 symbol, 3 space
+//     *        1 symbol, 4 space
+
+DrawDiamond(6) 
+// 11 rows // diff 5 // 12 - 1 == 11
+
+// Returns:
+//      *       1  symbol, 5 spaces
+//     ***      3  symbol, 4 spaces
+//    *****     5  symbol, 3 spaces
+//   *******    7  symbol, 2 spaces
+//  *********   9  symbol, 1 spaces
+// ***********  11 symbol, 0 spaces
+//  *********   9  symbol, 1 spaces
+//   *******    7  symbol, 2 spaces
+//    *****     5  symbol, 3 spaces
+//     ***      3  symbol, 4 spaces
+//      *       1  symbol, 5 spaces
+
+DrawDiamond(7) 
+// 13 rows // diff 6 // 14 - 1 == 13
+
+// Returns:
+//0        *
+//1       ***
+//2      *****
+//3     *******
+//4    *********
+//5   ***********
+//6  *************
+//7   ***********
+//8    *********
+//9     *******
+//10     *****
+//11      ***
+//12       *
+
+DrawDiamond(8) 
+// 15 rows // diff 7 // 16 - 1 == 15
+// max space // 8 - 1 == 7
+// max symbol // 16 - 1 == 15
+
+// Returns:
+//        *
+//       ***
+//      *****
+//     *******
+//    *********
+//   ***********
+//  *************
+// ***************
+//  *************
+//   ***********
+//    *********
+//     *******
+//      *****
+//       ***
+//        *
 ```
 
 ### DrawChessboard

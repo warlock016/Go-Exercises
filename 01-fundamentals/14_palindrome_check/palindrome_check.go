@@ -1,5 +1,10 @@
 package palindromecheck
 
+import (
+	"strings"
+	"unicode"
+)
+
 // IsPalindrome checks if a string is a palindrome (case-sensitive).
 // A palindrome reads the same forward and backward.
 //
@@ -8,12 +13,20 @@ package palindromecheck
 //   - IsPalindrome("Racecar") returns false
 //   - IsPalindrome("hello") returns false
 func IsPalindrome(s string) bool {
-	// TODO(human): Convert string to runes for Unicode safety
-	// Use two pointers: one at start (i=0), one at end (j=len-1)
-	// Compare runes[i] with runes[j], move pointers inward
-	// If any pair doesn't match, return false
-	// If loop completes, return true
-	return false
+	// TODO(human): Implement palindrome check
+
+	runes := []rune(s)
+
+	var forward strings.Builder
+	var backward strings.Builder
+
+	forward.WriteString(s)
+
+	for i := len(runes) - 1; i >= 0; i-- {
+		backward.WriteRune(runes[i])
+	}
+
+	return forward.String() == backward.String()
 }
 
 // IsPalindromeIgnoreCase checks if a string is a palindrome, ignoring case.
@@ -24,11 +37,20 @@ func IsPalindrome(s string) bool {
 //   - IsPalindromeIgnoreCase("RaceCar") returns true
 //   - IsPalindromeIgnoreCase("Hello") returns false
 func IsPalindromeIgnoreCase(s string) bool {
-	// TODO(human): Import "strings" package at the top of the file
-	// Use strings.ToLower() to normalize case
-	// Then reuse IsPalindrome() function
-	// This demonstrates code reusability!
-	return false
+	// TODO(human): Implement case-insensitive palindrome check
+	runes := []rune(s)
+
+	var forward strings.Builder
+	var backward strings.Builder
+
+	forward.WriteString(s)
+
+	for i := len(runes) - 1; i >= 0; i-- {
+		backward.WriteRune(runes[i])
+	}
+
+	return strings.EqualFold(forward.String(), backward.String())
+	// return false
 }
 
 // IsPalindromeIgnoreSpaces checks if a string is a palindrome,
@@ -36,18 +58,29 @@ func IsPalindromeIgnoreCase(s string) bool {
 //
 // Examples:
 //   - IsPalindromeIgnoreSpaces("A man a plan a canal Panama") returns true
-//   - IsPalindromeIgnoreSpaces("race car") returns false
+//   - IsPalindromeIgnoreSpaces("race car") returns true
 //   - IsPalindromeIgnoreSpaces("Was it a car or a cat I saw") returns true
+//   - IsPalindromeIgnoreSpaces("hello world") returns false
 func IsPalindromeIgnoreSpaces(s string) bool {
-	// TODO(human): Build a filtered string containing only letters
-	// You'll need to import "strings" and "unicode" packages
-	// 1. Create a strings.Builder for efficiency
-	// 2. Range over the string (gets runes automatically)
-	// 3. For each rune, check if it's a letter with unicode.IsLetter()
-	// 4. If it is, convert to lowercase with unicode.ToLower() and add to builder
-	// 5. Get the filtered string with builder.String()
-	// 6. Check if filtered string is a palindrome
-	return false
+	// TODO(human): Implement palindrome check ignoring spaces and case
+
+	lowerCase := strings.ToLower(s)
+	var forwardStr strings.Builder
+	var backwardStr strings.Builder
+	// forward := []rune{}
+	// backward := []rune{}
+
+	for _, r := range lowerCase {
+		if unicode.IsLetter(r) {
+			forwardStr.WriteRune(r)
+		}
+	}
+
+	for i := len([]rune(forwardStr.String())) - 1; i >= 0; i-- {
+		backwardStr.WriteRune([]rune(forwardStr.String())[i])
+	}
+
+	return forwardStr.String() == backwardStr.String()
 }
 
 // LongestPalindromeSubstring finds the longest palindromic substring in s.
@@ -58,24 +91,24 @@ func IsPalindromeIgnoreSpaces(s string) bool {
 //   - LongestPalindromeSubstring("cbbd") returns "bb"
 //   - LongestPalindromeSubstring("racecar") returns "racecar"
 func LongestPalindromeSubstring(s string) string {
-	// TODO(human): Implement expand-around-center algorithm
-	//
-	// Pseudocode:
-	// 1. Handle empty string edge case
-	// 2. Convert string to runes
-	// 3. Initialize start=0, maxLen=0 to track longest palindrome
-	// 4. For each position i in the string:
-	//    a. Check odd-length palindromes (center at i)
-	//       Call expandAroundCenter(runes, i, i)
-	//    b. Check even-length palindromes (center between i and i+1)
-	//       Call expandAroundCenter(runes, i, i+1)
-	//    c. Take the max of both lengths
-	//    d. If this length > maxLen, update maxLen and start position
-	//       start = i - (currentMax-1)/2
-	// 5. Return substring from start to start+maxLen
-	//
-	// You'll need to implement expandAroundCenter as a helper function!
-	return ""
+	// TODO(human): Find the longest palindromic substring
+
+	runes := []rune(s)
+	maxLen := 0
+	start := 0
+
+	for i := range runes {
+		oddLen := expandAroundCenter(runes, i, i)
+		evenLen := expandAroundCenter(runes, i, i+1)
+		currLen := max(oddLen, evenLen)
+
+		if currLen > maxLen {
+			maxLen = currLen
+			start = i - (currLen-1)/2
+		}
+	}
+
+	return string(runes[start : start+maxLen])
 }
 
 // expandAroundCenter is a helper function for LongestPalindromeSubstring.
@@ -85,18 +118,23 @@ func LongestPalindromeSubstring(s string) string {
 // For odd-length palindromes: left == right (single center)
 // For even-length palindromes: left + 1 == right (two centers)
 func expandAroundCenter(runes []rune, left, right int) int {
-	// TODO(human): Expand outward while characters match
-	//
-	// Pseudocode:
-	// 1. While left >= 0 AND right < len(runes) AND runes[left] == runes[right]:
-	//    - Move left pointer left (left--)
-	//    - Move right pointer right (right++)
-	// 2. When loop exits, we've gone one step too far
-	// 3. Return the length: right - left - 1
-	//
-	// Example: "aba" with left=1, right=1
-	// - Iteration 1: left=0, right=2, 'a' == 'a', continue
-	// - Iteration 2: left=-1, right=3, out of bounds, stop
-	// - Length = 3 - (-1) - 1 = 3 ✓
-	return 0
+	// TODO(human): Implement helper function to expand around center
+
+	if len(runes) == 0 {
+		return 0
+	}
+
+	// ['b','a','b','a','d']
+	// [ 0 , 1,  2,  3,  4 ]
+	// left =1, right = 1
+
+	for {
+		if left >= 0 && right < len(runes) && runes[left] == runes[right] {
+			left--
+			right++
+		} else {
+			return right - left - 1
+		}
+	}
+
 }

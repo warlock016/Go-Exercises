@@ -75,7 +75,7 @@ func TestIsPalindromeIgnoreSpaces(t *testing.T) {
 		want  bool
 	}{
 		{"classic phrase", "A man a plan a canal Panama", true},
-		{"with spaces not palindrome", "race car", false},
+		{"with spaces palindrome", "race car", true},
 		{"another classic", "Was it a car or a cat I saw", true},
 		{"not palindrome", "hello world", false},
 		{"NASA palindrome", "A Santa at NASA", true},

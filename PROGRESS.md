@@ -116,7 +116,7 @@
 
 #### 01. Fundamentals
 - **Status:** 🔄 In Progress - Current Focus
-- **Exercises:** 1/17 completed (03 ✅)
+- **Exercises:** 14~5/17 completed (17 ✅)
 - **Started:** 2025-11-14
 - **Approach:** Accelerated path - skipped 01-02 (basic variables/types already mastered)
 - **Learning Style:** "Learn by doing" - EXPLANATION.md not required

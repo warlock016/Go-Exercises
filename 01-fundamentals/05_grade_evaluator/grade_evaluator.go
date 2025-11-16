@@ -16,11 +16,21 @@ package gradeevaluator
 //	LetterGrade(42)  // "F"
 func LetterGrade(score int) string {
 	// TODO(human): Implement letter grade conversion
-	// Hint: Use if/else-if chain, starting with highest grade
-	// if score >= 90 {
-	//     return "A"
-	// } else if ...
-	return ""
+
+	var grade string
+
+	if score >= 90 {
+		grade = "A"
+	} else if score >= 80 {
+		grade = "B"
+	} else if score >= 70 {
+		grade = "C"
+	} else if score >= 60 {
+		grade = "D"
+	} else {
+		grade = "F"
+	}
+	return grade
 }
 
 // IsPassing returns true if the score is a passing grade (>= 60).
@@ -31,9 +41,8 @@ func LetterGrade(score int) string {
 //	IsPassing(60)  // true
 //	IsPassing(59)  // false
 func IsPassing(score int) bool {
-	// TODO(human): Implement pass/fail check
-	// Hint: Single comparison is enough
-	return false
+
+	return score >= 60
 }
 
 // GradeWithPlus converts a numeric score to a detailed letter grade with
@@ -60,15 +69,42 @@ func IsPassing(score int) bool {
 //	GradeWithPlus(92)  // "A"
 //	GradeWithPlus(88)  // "B+"
 //	GradeWithPlus(55)  // "F"
+
+func LetterGradeMod(score int) (string, int) {
+	// TODO(human): Implement letter grade conversion
+
+	var grade string
+	var remainder int
+
+	if score >= 90 {
+		grade = "A"
+		remainder = score % 90
+	} else if score >= 80 {
+		grade = "B"
+		remainder = score % 80
+	} else if score >= 70 {
+		grade = "C"
+		remainder = score % 70
+	} else if score >= 60 {
+		grade = "D"
+		remainder = score % 60
+	} else {
+		grade = "F"
+		remainder = 0
+	}
+	return grade, remainder
+}
+
 func GradeWithPlus(score int) string {
-	// TODO(human): Implement detailed grading with plus/minus
-	// Hint: Long if/else-if chain, check highest grades first
-	// if score >= 97 {
-	//     return "A+"
-	// } else if score >= 93 {
-	//     return "A"
-	// } else if ...
-	return ""
+	grade, mod := LetterGradeMod(score)
+
+	if mod >= 7 && grade != "F" {
+		grade += "+"
+	} else if mod < 3 && grade != "F" {
+		grade += "-"
+	}
+
+	return grade
 }
 
 // ClassAverage calculates the average score of a class and returns both
@@ -83,11 +119,18 @@ func GradeWithPlus(score int) string {
 //	ClassAverage([]int{})                    // (0.0, "F")
 func ClassAverage(scores []int) (average float64, grade string) {
 	// TODO(human): Implement class average calculation
-	// Hint:
-	// 1. Check if slice is empty first
-	// 2. Sum all scores using a for loop
-	// 3. Convert to float64 before dividing: float64(sum) / float64(len(scores))
-	// 4. Use LetterGrade to convert average to letter grade
-	// 5. Return both values
-	return 0.0, "F"
+
+	var cumScore float64
+
+	if len(scores) == 0 {
+		return 0, "F"
+	}
+
+	for _, v := range scores {
+		cumScore += float64(v)
+	}
+
+	avgScore := cumScore / float64(len(scores))
+
+	return avgScore, LetterGrade(int(avgScore))
 }

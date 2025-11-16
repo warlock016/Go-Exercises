@@ -19,15 +19,24 @@ import (
 //	123
 func NumberTriangle(n int) string {
 	// TODO(human): Build a triangle where each row contains numbers from 1 to row number
-	// Hint: Use nested loops - outer for rows (1 to n), inner for numbers (1 to current row)
-	// Hint: Use strings.Builder for efficient string construction
-	// Hint: Don't forget to add "\n" at the end of each row
 	var builder strings.Builder
 
-	_ = builder     // Using builder
+	_ = builder      // Using builder
 	_ = strconv.Itoa // For converting int to string
 
-	return ""
+	if n <= 0 {
+		return ""
+	}
+
+	for i := 1; i <= n; i++ {
+		// fmt.Println(i)
+		for j := 1; j <= i; j++ {
+			builder.WriteString(strconv.Itoa(j))
+		}
+		builder.WriteString("\n")
+	}
+
+	return builder.String()
 }
 
 // ReversePyramid generates a reverse pyramid pattern.
@@ -46,15 +55,23 @@ func NumberTriangle(n int) string {
 //	1
 func ReversePyramid(n int) string {
 	// TODO(human): Build a reverse pyramid starting from n numbers down to 1
-	// Hint: Outer loop could go from n down to 1 (or 1 to n with different inner loop)
-	// Hint: Each row i prints numbers from 1 to (n - row + 1) or similar logic
-	// Hint: Think about the relationship between row number and how many numbers to print
 	var builder strings.Builder
 
-	_ = builder     // Using builder
+	_ = builder      // Using builder
 	_ = strconv.Itoa // For converting int to string
 
-	return ""
+	if n <= 0 {
+		return ""
+	}
+
+	for i := n; i >= 1; i-- {
+		for j := 1; j <= i; j++ {
+			builder.WriteString(strconv.Itoa(j))
+		}
+		builder.WriteString("\n")
+	}
+
+	return builder.String()
 }
 
 // MultiplicationTable generates an n×n multiplication table.
@@ -69,14 +86,26 @@ func ReversePyramid(n int) string {
 //	3 6 9
 func MultiplicationTable(n int) string {
 	// TODO(human): Build an n×n multiplication table
-	// Hint: Nested loops - outer for rows (1 to n), inner for columns (1 to n)
-	// Hint: Calculate product = row * col
-	// Hint: Add space between numbers EXCEPT after the last number in each row
-	// Hint: Check if col < n before adding space
 	var builder strings.Builder
 
-	_ = builder     // Using builder
+	_ = builder      // Using builder
 	_ = strconv.Itoa // For converting int to string
 
-	return ""
+	if n < 0 {
+		return ""
+	}
+
+	for i := 1; i <= n; i++ {
+		for j := 1; j <= n; j++ {
+			builder.WriteString(strconv.Itoa(i * j))
+			if j < n {
+				builder.WriteString(" ")
+			} else {
+				builder.WriteString("\n")
+			}
+		}
+
+	}
+
+	return builder.String()
 }

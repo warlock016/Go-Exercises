@@ -190,7 +190,7 @@ func TestMaxCollatzInRange(t *testing.T) {
 			name:       "range 10-15",
 			start:      10,
 			end:        15,
-			wantNum:    15,
+			wantNum:    14,
 			wantLength: 18,
 			wantErr:    false,
 		},

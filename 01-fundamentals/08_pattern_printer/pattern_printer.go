@@ -1,5 +1,10 @@
 package patternprinter
 
+import (
+	"strconv"
+	"strings"
+)
+
 // PrintSquare generates an n×n square pattern of asterisks.
 // Each row contains n asterisks followed by a newline.
 // Returns an empty string if n <= 0.
@@ -9,13 +14,18 @@ package patternprinter
 //	PrintSquare(3) returns "***\n***\n***\n"
 func PrintSquare(n int) string {
 	// TODO(human): Implement PrintSquare
-	// 1. Handle edge case: if n <= 0, return ""
-	// 2. Create a strings.Builder for efficient string building
-	// 3. Use outer loop for rows (iterate n times)
-	// 4. Use inner loop for columns (iterate n times, write "*")
-	// 5. After each row's inner loop, write "\n"
-	// 6. Return builder.String()
-	return ""
+	var square strings.Builder
+
+	if n <= 0 {
+		return ""
+	}
+
+	for range n {
+		square.WriteString(strings.Repeat("*", n))
+		square.WriteString("\n")
+	}
+
+	return square.String()
 }
 
 // PrintTriangle generates a right triangle pattern with n rows.
@@ -27,13 +37,19 @@ func PrintSquare(n int) string {
 //	PrintTriangle(4) returns "*\n**\n***\n****\n"
 func PrintTriangle(n int) string {
 	// TODO(human): Implement PrintTriangle
-	// 1. Handle edge case: if n <= 0, return ""
-	// 2. Create a strings.Builder
-	// 3. Outer loop: for row from 0 to n-1
-	// 4. Inner loop: iterate (row + 1) times, write "*"
-	// 5. After inner loop, write "\n"
-	// 6. Return builder.String()
-	return ""
+
+	var triangle strings.Builder
+
+	if n <= 0 {
+		return ""
+	}
+
+	for i := 1; i <= n; i++ {
+		triangle.WriteString(strings.Repeat("*", i))
+		triangle.WriteString("\n")
+	}
+
+	return triangle.String()
 }
 
 // PrintPyramid generates a centered pyramid pattern with n rows.
@@ -45,14 +61,19 @@ func PrintTriangle(n int) string {
 //	PrintPyramid(3) returns "  *\n ***\n*****\n"
 func PrintPyramid(n int) string {
 	// TODO(human): Implement PrintPyramid
-	// 1. Handle edge case: if n <= 0, return ""
-	// 2. Create a strings.Builder
-	// 3. Outer loop: for row from 0 to n-1
-	// 4. Write leading spaces: loop (n - row - 1) times, write " "
-	// 5. Write asterisks: loop (2*row + 1) times, write "*"
-	// 6. Write "\n"
-	// 7. Return builder.String()
-	return ""
+	var pyramid strings.Builder
+
+	if n <= 0 {
+		return ""
+	}
+
+	for i := 1; i <= n; i++ {
+		pyramid.WriteString(strings.Repeat(" ", n-i))
+		pyramid.WriteString(strings.Repeat("*", 2*i-1))
+		pyramid.WriteString("\n")
+	}
+
+	return pyramid.String()
 }
 
 // PrintNumberSquare generates an n×n grid where each row displays its row number.
@@ -64,12 +85,16 @@ func PrintPyramid(n int) string {
 //	PrintNumberSquare(3) returns "111\n222\n333\n"
 func PrintNumberSquare(n int) string {
 	// TODO(human): Implement PrintNumberSquare
-	// 1. Handle edge case: if n <= 0, return ""
-	// 2. Create a strings.Builder
-	// 3. Outer loop: for row from 0 to n-1
-	// 4. Convert row number to string: strconv.Itoa(row + 1)
-	// 5. Inner loop: iterate n times, write the digit string
-	// 6. After inner loop, write "\n"
-	// 7. Return builder.String()
-	return ""
+	var square strings.Builder
+
+	if n <= 0 {
+		return ""
+	}
+
+	for i := 1; i <= n; i++ {
+		square.WriteString(strings.Repeat(strconv.Itoa(i), n))
+		square.WriteString("\n")
+	}
+
+	return square.String()
 }
