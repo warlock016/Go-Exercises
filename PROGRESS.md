@@ -63,8 +63,14 @@
 ✅ Quick learner (efficient use of time)
 
 ### Priority Improvement Areas
-⚠️ **Critical Gap:** String manipulation (runes vs bytes vs strings)
+⚠️ **Critical Gap:** String manipulation (runes vs bytes vs strings) - ✅ RESOLVED via String Mastery module
 ⚠️ **Critical Gap:** Test writing (table-driven patterns, test organization)
+📝 **New Focus Area:** Slice manipulation patterns (2025-11-16) - Need complex exercises for:
+   - Slice slicing direction: removing from front `s[1:]` vs back `s[:len(s)-1]`
+   - Two-pointer algorithms with slices
+   - In-place modifications vs creating new slices
+   - Edge cases: empty slices, single elements, boundary conditions
+   - **Context:** Bug in Queue.Dequeue - retrieved from front but removed from back. Need to nail the mental model.
 📝 Complex iterations over maps and strings
 📝 Type conversion patterns
 📝 Interface implementation patterns
@@ -130,12 +136,15 @@
 
 #### 02. Data Structures
 - **Status:** 🔄 In Progress - Current Focus
-- **Exercises:** 0/17 completed (all exercises created and ready)
+- **Exercises:** 8/17 completed (Tier 1-2 complete ✅)
 - **Started:** 2025-11-16
 - **Focus:** Slices (internals, algorithms), Maps (patterns, complex keys), Structs (composition, design), Custom types
-- **Target:** Complete Tier 1-2 (exercises 1-8) by end of week
+- **Progress:** Exercises 01-08 completed (Slice Basics, Operations, Map Fundamentals, Struct Basics, Slice Algorithms, Map Patterns, Struct Composition, Collections)
+- **Target:** Complete Tier 3 (exercises 9-13) by end of week
 - **Approach:** Systematic depth - understanding data structure internals and design decisions
 - **Learning Goal:** Move from "how to iterate" to "which structure to choose"
+- **Key Insight (2025-11-16):** Experienced "simplicity breakthrough" - initially overwhelmed by Map/Filter/Reduce and GroupByLength, but realized they're just simple loops. This is Go's philosophy: explicit over clever.
+- **Bug Found:** Queue.Dequeue - correctly retrieved from front (`q.values[0]`) but incorrectly removed from back (`q.values[:len-1]`). Fixed to `q.values[1:]`. Need more practice with slice slicing direction.
 
 #### 03. Functions & Methods
 - **Status:** Locked
@@ -303,6 +312,7 @@ Progress toward Junior Gopher status:
 
 **Date** | **Insight**
 ---------|------------
+2025-11-16 | **Simplicity Breakthrough & Slice Direction Bug:** Completed Tier 1-2 (exercises 01-08) of Module 02. Experienced major "aha!" moment: initially overwhelmed by Map/Filter/Reduce and GroupByLength, but realized they're just simple loops and maps. This is Go's core philosophy - explicit over clever. **Bug found in Queue.Dequeue:** Correctly retrieved from front (`q.values[0]`) but incorrectly removed from back (`q.values[:len(s)-1]`). Fixed to `q.values[1:]`. The solution was "lol so simple" - one character change. This reveals a learning gap: need more complex slice manipulation exercises to nail the mental model of slice slicing direction (front vs back removal). **Request:** Create focused exercises on: slice direction patterns, two-pointer algorithms, in-place modifications, edge cases.
 2025-11-16 | **Module 01 Plateau - Ready for Next Phase:** Completed 16/17 exercises (94%) with 488 passing tests. Experiencing "beginner's plateau boredom" - algorithm exercises feel repetitive because control flow patterns are internalized. This is a **positive sign**! Decision: Mark Module 01 complete and advance to Module 02 (Data Structures). Ready to shift from "how do I iterate?" to "which data structure should I choose?" - this design-oriented thinking will re-engage problem-solving skills. Deferred 2 exercises (Luhn GenerateCheckDigit, Vowel Counter Unicode) to maintain momentum.
 2025-11-14 | **Strategic Pivot:** After completing 5/12 Algorithms exercises (Day 3), hit wall on Exercise 06 (JSON Parser) - requires interface{} and type assertions not yet learned. Decision: pause Algorithms module, pivot to Module 01 Fundamentals for systematic coverage. Key learning: **depth > speed** - moving too fast (7-8 exercises/day) without ensuring mastery. New target: 2-3 exercises/day with all tests passing.
 2025-11-14 | **Algorithmic Gap Identified:** Exercise 10 (Run-Length Encoding) crash revealed fundamental gap in state machine design and parsing algorithms. Created comprehensive Algorithms & State Machines module (12 exercises) to address this systematically. Key realization: need to understand **sequential state processing** vs nested conditionals.
@@ -312,4 +322,4 @@ Progress toward Junior Gopher status:
 ---
 
 **Last Updated:** 2025-11-16
-**Next Review:** After completing Module 02 Data Structures Tier 1-2 (exercises 1-8)
+**Next Review:** After completing Module 02 Data Structures Tier 3 (exercises 9-13)

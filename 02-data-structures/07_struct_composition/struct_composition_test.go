@@ -51,7 +51,7 @@ func TestNewEmployee(t *testing.T) {
 
 func TestNewCompany(t *testing.T) {
 	tests := []struct {
-		name string
+		name  string
 		cName string
 	}{
 		{"basic company", "TechCorp"},
@@ -104,9 +104,9 @@ func TestGetEmployeesByCity(t *testing.T) {
 	AddEmployee(&company, NewEmployee("Charlie", 28, "789 Elm", "Boston", "MA", "02103", 70000))
 
 	tests := []struct {
-		name     string
-		city     string
-		wantLen  int
+		name      string
+		city      string
+		wantLen   int
 		wantNames []string
 	}{
 		{"Boston employees", "Boston", 2, []string{"Alice", "Charlie"}},
