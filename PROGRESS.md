@@ -65,6 +65,15 @@
 ### Priority Improvement Areas
 ⚠️ **Critical Gap:** String manipulation (runes vs bytes vs strings) - ✅ RESOLVED via String Mastery module
 ⚠️ **Critical Gap:** Test writing (table-driven patterns, test organization)
+⚠️ **Active Weakness:** Map value semantics & nested structures (2025-11-18) - **REQUIRES CONTINUOUS PRACTICE**
+   - **Core Issue:** Tracking nesting levels and required retrieve-modify-reassign steps at each level
+   - **Pattern:** `map[K]V` where `V` contains `map[K2]V2` → Requires 2-level retrieve-modify-reassign
+   - **Specific Struggle:** Remembering to get inner values from COPY (not from original map)
+   - **Symptoms:** "Still hard even after drills; confusion tracking nesting and required steps"
+   - **Practice Completed:** Exercise 11 (single-level ✅), Exercise 11.5 (nested, struggled), Exercise 11.6 (drills, still hard)
+   - **Next Steps:** Continue encountering this pattern in future exercises until automatic
+   - **Success Criteria:** Can implement nested modifications without conscious thought about the pattern
+   - **Resources:** VALUES_AND_REFERENCES.md Section 4, NESTED_MAP_VALUES_QUICKSTART.md
 📝 **New Focus Area:** Slice manipulation patterns (2025-11-16) - Need complex exercises for:
    - Slice slicing direction: removing from front `s[1:]` vs back `s[:len(s)-1]`
    - Two-pointer algorithms with slices
@@ -136,15 +145,21 @@
 
 #### 02. Data Structures
 - **Status:** 🔄 In Progress - Current Focus
-- **Exercises:** 8/17 completed (Tier 1-2 complete ✅)
+- **Exercises:** 11/17 completed (65% - Tiers 1-2 complete ✅, Tier 3 in progress)
 - **Started:** 2025-11-16
-- **Focus:** Slices (internals, algorithms), Maps (patterns, complex keys), Structs (composition, design), Custom types
-- **Progress:** Exercises 01-08 completed (Slice Basics, Operations, Map Fundamentals, Struct Basics, Slice Algorithms, Map Patterns, Struct Composition, Collections)
-- **Target:** Complete Tier 3 (exercises 9-13) by end of week
+- **Focus:** Slices (internals, algorithms), Maps (patterns, complex keys), Structs (composition, design), Custom types, **Map value semantics**
+- **Progress:**
+  - ✅ Exercises 01-08: Slice Basics, Operations, Map Fundamentals, Struct Basics, Slice Algorithms, Map Patterns, Struct Composition, Collections
+  - ✅ Exercise 11: Data Modeling (Library System) - Single-level map value modifications
+  - ✅ Exercise 11.5: Music Playlist System - **Nested map values** (struggled with cascading deletes, nested retrieve-modify-reassign)
+  - ✅ Exercise 11.6: Map Value Drills - 5 progressive drills, all tests pass but **still hard** (tracking nesting levels)
+- **Target:** Complete remaining exercises 09, 10, 12-17
 - **Approach:** Systematic depth - understanding data structure internals and design decisions
-- **Learning Goal:** Move from "how to iterate" to "which structure to choose"
+- **Learning Goal:** Move from "how to iterate" to "which structure to choose" + **Master nested map value semantics**
 - **Key Insight (2025-11-16):** Experienced "simplicity breakthrough" - initially overwhelmed by Map/Filter/Reduce and GroupByLength, but realized they're just simple loops. This is Go's philosophy: explicit over clever.
+- **Key Insight (2025-11-18):** Exercise 11.5 design was "convoluted" (nested loops + value reassignments). Correctly identified that using `map[string]bool` for song sets or `[]string` for IDs would be cleaner than `[]Song`. Recognizes trade-offs between value semantics (current) vs pointer semantics (`map[K]*V`) for nested structures.
 - **Bug Found:** Queue.Dequeue - correctly retrieved from front (`q.values[0]`) but incorrectly removed from back (`q.values[:len-1]`). Fixed to `q.values[1:]`. Need more practice with slice slicing direction.
+- **Struggle Area:** Map value semantics with nested structures - requires continuous practice until automatic
 
 #### 03. Functions & Methods
 - **Status:** Locked

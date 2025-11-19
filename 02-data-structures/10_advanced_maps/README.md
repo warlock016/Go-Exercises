@@ -59,6 +59,24 @@ func GroupStudentsByGrade(students []Student) map[string][]Student
 // Each edge is [from, to], result maps each node to its neighbors
 // Example: [[1,2], [1,3], [2,3]] -> {1:[2,3], 2:[3], 3:[]}
 func BuildAdjacencyList(edges [][2]int) map[int][]int
+
+// --- NEW EXERCISES: Practice `make` Initialization Patterns ---
+
+// PreallocateMap creates a map with expected capacity and populates it
+// Returns map[int]string with keys 1-size, values "item_1" to "item_{size}"
+// Use capacity hint for performance
+func PreallocateMap(size int) map[int]string
+
+// SafeNestedIncrement increments the value at m[category][item] by 1
+// Creates necessary maps/values if they don't exist (defensive initialization)
+// Returns the new value after incrementing
+func SafeNestedIncrement(m map[string]map[string]int, category, item string) int
+
+// BuildInventoryIndex converts flat item data into nested structure
+// Input: items with Category and Name fields
+// Output: map[category]map[itemName]count
+// Duplicate items increment their count
+func BuildInventoryIndex(items []struct{ Category, Name string }) map[string]map[string]int
 ```
 
 ## 💡 Examples
@@ -106,6 +124,33 @@ graph := BuildAdjacencyList(edges)
 6. **GroupStudentsByGrade:** Iterate through students, group by grade using AddToMapSlice pattern
 7. **BuildAdjacencyList:** Create map, add each edge's destination to source's neighbor list
 
+```go
+// NEW EXERCISES: Initialization patterns
+
+// Preallocation with capacity hint
+m := PreallocateMap(1000)
+// m = {1: "item_1", 2: "item_2", ..., 1000: "item_1000"}
+// Using make(map[int]string, 1000) preallocates space for better performance
+
+// Safe nested increment (defensive programming)
+inventory := make(map[string]map[string]int)
+count := SafeNestedIncrement(inventory, "food", "apple")  // count = 1, creates both levels
+count = SafeNestedIncrement(inventory, "food", "apple")   // count = 2, increments existing
+// inventory = {"food": {"apple": 2}}
+
+// Building nested structure from flat data
+items := []struct{ Category, Name string }{
+    {"food", "apple"},
+    {"food", "apple"},      // duplicate
+    {"electronics", "phone"},
+}
+index := BuildInventoryIndex(items)
+// index = {
+//   "food": {"apple": 2},           // count incremented for duplicate
+//   "electronics": {"phone": 1}
+// }
+```
+
 ## 🧪 Testing
 
 Run tests with:
@@ -113,7 +158,7 @@ Run tests with:
 go test -v
 ```
 
-Expected test count: ~30-35 tests across all functions
+Expected test count: ~50-55 tests across all functions (including new exercises)
 
 ## 🤔 Think About
 
@@ -127,7 +172,18 @@ Expected test count: ~30-35 tests across all functions
 
 3. **Why check if key exists before appending to map of slices?**
    - If key doesn't exist, the slice is nil
-   - Appending to nil slice works, but explicit initialization is clearer
+   - Appending to nil slice works! Go handles it automatically
+   - No need to check - just `m[key] = append(m[key], value)`
+
+4. **When should you use capacity hints with `make`?**
+   - When you know approximate size in advance (e.g., `make(map[K]V, 1000)`)
+   - Reduces reallocations and improves performance
+   - But don't worry about it for small maps - default is fine
+
+5. **What's the pattern for safe nested map access?**
+   - Always check if outer key exists: `if m[outerKey] == nil { ... }`
+   - Cannot append to nil map (unlike nil slice)
+   - Create inner map before using: `m[outerKey] = make(map[K2]V)`
 
 4. **When would you use a map of structs vs slice of structs?**
    - Map: O(1) lookup by ID, unique keys

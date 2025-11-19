@@ -340,3 +340,210 @@ func TestBuildAdjacencyList(t *testing.T) {
 		})
 	}
 }
+
+// --- NEW TESTS: Practice `make` Initialization Patterns ---
+
+func TestPreallocateMap(t *testing.T) {
+	tests := []struct {
+		name string
+		size int
+	}{
+		{"small map", 10},
+		{"medium map", 100},
+		{"large map", 1000},
+		{"empty map", 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := PreallocateMap(tt.size)
+
+			if got == nil {
+				t.Fatal("PreallocateMap() returned nil")
+			}
+
+			if len(got) != tt.size {
+				t.Errorf("PreallocateMap(%d) length = %d, want %d", tt.size, len(got), tt.size)
+			}
+
+			// Check first and last entries if size > 0
+			if tt.size > 0 {
+				if val, exists := got[1]; !exists {
+					t.Errorf("PreallocateMap(%d) missing key 1", tt.size)
+				} else if val != "item_1" {
+					t.Errorf("PreallocateMap(%d)[1] = %q, want %q", tt.size, val, "item_1")
+				}
+
+				if _, exists := got[tt.size]; !exists {
+					t.Errorf("PreallocateMap(%d) missing key %d", tt.size, tt.size)
+				}
+			}
+		})
+	}
+}
+
+func TestSafeNestedIncrement(t *testing.T) {
+	tests := []struct {
+		name      string
+		initial   map[string]map[string]int
+		category  string
+		item      string
+		wantValue int
+		wantLen   int // Expected number of categories after operation
+	}{
+		{
+			"increment existing item",
+			map[string]map[string]int{"food": {"apple": 5}},
+			"food",
+			"apple",
+			6,
+			1,
+		},
+		{
+			"add new item to existing category",
+			map[string]map[string]int{"food": {"apple": 5}},
+			"food",
+			"banana",
+			1,
+			1,
+		},
+		{
+			"create new category and item",
+			map[string]map[string]int{},
+			"electronics",
+			"phone",
+			1,
+			1,
+		},
+		{
+			"nil category map",
+			map[string]map[string]int{"food": nil},
+			"food",
+			"apple",
+			1,
+			1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SafeNestedIncrement(tt.initial, tt.category, tt.item)
+
+			if got != tt.wantValue {
+				t.Errorf("SafeNestedIncrement() = %d, want %d", got, tt.wantValue)
+			}
+
+			if len(tt.initial) != tt.wantLen {
+				t.Errorf("SafeNestedIncrement() resulted in %d categories, want %d", len(tt.initial), tt.wantLen)
+			}
+
+			if tt.initial[tt.category] == nil {
+				t.Errorf("SafeNestedIncrement() category %q is nil", tt.category)
+			}
+
+			if tt.initial[tt.category][tt.item] != tt.wantValue {
+				t.Errorf("SafeNestedIncrement() m[%q][%q] = %d, want %d",
+					tt.category, tt.item, tt.initial[tt.category][tt.item], tt.wantValue)
+			}
+		})
+	}
+}
+
+func TestBuildInventoryIndex(t *testing.T) {
+	tests := []struct {
+		name  string
+		items []struct{ Category, Name string }
+		want  map[string]map[string]int
+	}{
+		{
+			"empty inventory",
+			[]struct{ Category, Name string }{},
+			map[string]map[string]int{},
+		},
+		{
+			"single item",
+			[]struct{ Category, Name string }{
+				{"food", "apple"},
+			},
+			map[string]map[string]int{
+				"food": {"apple": 1},
+			},
+		},
+		{
+			"multiple items same category",
+			[]struct{ Category, Name string }{
+				{"food", "apple"},
+				{"food", "banana"},
+				{"food", "orange"},
+			},
+			map[string]map[string]int{
+				"food": {"apple": 1, "banana": 1, "orange": 1},
+			},
+		},
+		{
+			"multiple categories",
+			[]struct{ Category, Name string }{
+				{"food", "apple"},
+				{"electronics", "phone"},
+				{"food", "banana"},
+				{"clothing", "shirt"},
+			},
+			map[string]map[string]int{
+				"food":        {"apple": 1, "banana": 1},
+				"electronics": {"phone": 1},
+				"clothing":    {"shirt": 1},
+			},
+		},
+		{
+			"duplicate items increment count",
+			[]struct{ Category, Name string }{
+				{"food", "apple"},
+				{"food", "apple"},
+				{"food", "banana"},
+				{"food", "apple"},
+			},
+			map[string]map[string]int{
+				"food": {"apple": 3, "banana": 1},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := BuildInventoryIndex(tt.items)
+
+			if got == nil && len(tt.want) > 0 {
+				t.Fatal("BuildInventoryIndex() returned nil")
+			}
+
+			if len(got) != len(tt.want) {
+				t.Errorf("BuildInventoryIndex() has %d categories, want %d", len(got), len(tt.want))
+			}
+
+			for category, wantItems := range tt.want {
+				gotItems, exists := got[category]
+				if !exists {
+					t.Errorf("BuildInventoryIndex() missing category %q", category)
+					continue
+				}
+
+				if gotItems == nil {
+					t.Errorf("BuildInventoryIndex() category %q is nil", category)
+					continue
+				}
+
+				if len(gotItems) != len(wantItems) {
+					t.Errorf("BuildInventoryIndex()[%q] has %d items, want %d", category, len(gotItems), len(wantItems))
+				}
+
+				for item, wantCount := range wantItems {
+					if gotCount, exists := gotItems[item]; !exists {
+						t.Errorf("BuildInventoryIndex()[%q] missing item %q", category, item)
+					} else if gotCount != wantCount {
+						t.Errorf("BuildInventoryIndex()[%q][%q] = %d, want %d", category, item, gotCount, wantCount)
+					}
+				}
+			}
+		})
+	}
+}
