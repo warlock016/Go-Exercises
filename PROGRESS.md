@@ -10,9 +10,10 @@
 
 **Overall Level:** Accelerated Beginner → Junior Track
 **Modules Completed:** 2.94/14 (Diagnostic ✅, String Mastery ✅, Fundamentals 94% ✅)
-**Modules In Progress:** 1/14 (Data Structures 🔄 0/17)
+**Modules In Progress:** 1/14 (Data Structures 🔄 11/17)
+**Modules Available:** 1/14 (Graph Theory & Algorithmic Thinking 🆕 0/15 - ready to interleave)
 **Modules Paused:** 1/14 (Algorithms ⏸️ 5/12 - deferred until Module 03)
-**Exercises Completed:** 44/~237 (19% complete)
+**Exercises Completed:** 44/~252 (17% complete)
 **Projects Completed:** 0/4
 
 **Current Focus:** Module 02 Data Structures (Core Curriculum)
@@ -47,6 +48,7 @@
 | **Pointers** | 🟡 Developing | 70% | Basic understanding, completed with hints |
 | **Type Conversions** | 🟢 Proficient | 80% | Practiced in multiple Module 01 exercises (Calculator, Type Conversions) |
 | **Algorithms & State Machines** | 🟡 Developing | 65% | State machines mastered (3/3), parsing patterns developing. Paused for systematic learning |
+| **Graph Theory & Algorithms** | 🔴 Needs Learning | 30% | Can implement BFS/DFS from templates but lacks deep understanding of WHEN/WHY. Module 00.8 created to address gap ⚠️ |
 | **Loops & Iteration** | 🔵 Mastery | 95% | Nested loops, range, for-each patterns mastered across 16 exercises |
 
 **Levels:**
@@ -65,6 +67,12 @@
 ### Priority Improvement Areas
 ⚠️ **Critical Gap:** String manipulation (runes vs bytes vs strings) - ✅ RESOLVED via String Mastery module
 ⚠️ **Critical Gap:** Test writing (table-driven patterns, test organization)
+⚠️ **New Gap Identified (2025-11-20):** Graph algorithms & algorithmic thinking - Can implement BFS/DFS from templates but struggles with:
+   - Understanding WHEN to use BFS vs DFS (shortest path vs deep exploration)
+   - Deriving algorithms independently without templates
+   - Recognizing graph problem patterns (cycles, components, topological sort)
+   - **Resolution:** Created Module 00.8 Graph Theory & Algorithmic Thinking (15 exercises, 4 tiers)
+   - **Approach:** Interleave with Module 02 to maintain variety and reinforce concepts
 ⚠️ **Active Weakness:** Map value semantics & nested structures (2025-11-18) - **REQUIRES CONTINUOUS PRACTICE**
    - **Core Issue:** Tracking nesting levels and required retrieve-modify-reassign steps at each level
    - **Pattern:** `map[K]V` where `V` contains `map[K2]V2` → Requires 2-level retrieve-modify-reassign
@@ -130,6 +138,23 @@
 - **Paused Reason:** Exercise 06 requires interface{} concepts not yet learned - pivoting to Module 01 for systematic coverage
 - **Created:** 2025-11-14 in response to run-length encoding decoder challenges
 - **Note:** Exercises 04-05 have failing tests - will revisit after fundamentals. Exercise 06 (JSON Parser) deferred until interface{} mastery.
+
+#### 00.8. Graph Theory & Algorithmic Thinking (Custom Module)
+- **Status:** 🆕 Not Started
+- **Exercises:** 0/15 completed
+- **Priority:** ⚠️ HIGH - Address graph algorithm understanding gap discovered in Module 02 Exercise 16
+- **Focus:** BFS/DFS mastery, shortest paths, cycles, topological sort, connected components, MST, Dijkstra, Floyd-Warshall, real-world applications
+- **Created:** 2025-11-20 in response to BFS/DFS implementation struggles
+- **Approach:** Comprehensive 4-tier curriculum (Foundation → Application → Integration → Mastery)
+- **Structure:**
+  - **Tier 1 (01-04):** Graph properties, path finding, BFS/DFS deep dives (4-5 hours)
+  - **Tier 2 (05-09):** Connected components, bipartite detection, Dijkstra, topological sort, visualization (5-6 hours)
+  - **Tier 3 (10-12):** Cycle analysis, MST, strongly connected components (3-4 hours)
+  - **Tier 4 (13-15):** Floyd-Warshall, algorithm selection, social network analysis capstone (4-5 hours)
+- **Target:** Interleave with Module 02 - alternate between data structures and graph exercises
+- **Key Insight:** Gap identified - can implement BFS/DFS from templates but lacks deep understanding of WHEN/WHY to use each algorithm
+- **Resources:** GRAPH_THEORY_GUIDE.md, ALGORITHMIC_THINKING.md added to resources/
+- **Total Estimated Time:** 12-15 hours
 
 #### 01. Fundamentals
 - **Status:** ✅ Complete (Partial - 94%)
