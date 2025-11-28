@@ -1,7 +1,6 @@
 package path_existence
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -68,6 +67,9 @@ func TestFindPathBFS(t *testing.T) {
 		{"Start equals end", graph, 0, 0, 0, false},
 		{"No path", map[int][]int{0: {}, 1: {}}, 0, 1, 0, true},
 		{"Path length 2", graph, 1, 5, 2, false},
+		{"Path A", graph, 2, 5, 2, false},
+		{"Path B", graph, 1, 5, 2, false},
+		{"Decoupled end node", map[int][]int{0: {1}, 1: {2}, 2: {3}, 3: {4}, 4: {5}, 5: {}, 6: {}}, 0, 6, 0, true},
 	}
 
 	for _, tt := range tests {
@@ -140,6 +142,8 @@ func TestFindPathDFS(t *testing.T) {
 		{"Direct path", graph, 0, 1, false},
 		{"Start equals end", graph, 0, 0, false},
 		{"No path", map[int][]int{0: {}, 1: {}}, 0, 1, true},
+		{"Path A", graph, 2, 5, false},
+		{"Path B", graph, 1, 5, false},
 	}
 
 	for _, tt := range tests {

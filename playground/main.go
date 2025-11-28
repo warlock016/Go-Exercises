@@ -1,85 +1,76 @@
 package main
 
 import (
-	"slices"
-
-	"golang.org/x/exp/constraints"
+	"fmt"
+	"math/rand/v2"
+	"strings"
 )
 
-/*
- In a scratch file, implement these from scratch (no scaffolding):
+func rowCreator(pos, n int) ([]string, error) {
 
-  // 1. Generic Min/Max
-  func Min[T constraints.Ordered](a, b T) T
-  func Max[T constraints.Ordered](a, b T) T
+	row := make([]string, 0, n)
 
-  // 2. Generic Contains
-  func Contains[T comparable](slice []T, value T) bool
-
-  // 3. Generic Map
-  func Map[T, U any](items []T, fn func(T) U) []U
-
-  // 4. Generic Filter
-  func Filter[T any](items []T, predicate func(T) bool) []T
-
-  // 5. Generic Set (struct)
-  type Set[T comparable] struct { design this  }
-  func (s *Set[T]) Add(value T)
-  func (s *Set[T]) Contains(value T) bool
-*/
-
-func Min[T constraints.Ordered](a, b T) T {
-	return min(a, b)
-}
-
-func Max[T constraints.Ordered](a, b T) T {
-	return max(a, b)
-}
-
-func Contains[T comparable](slice []T, value T) bool {
-	return slices.Contains(slice, value)
-}
-
-func Map[T, U any](items []T, fn func(T) U) []U {
-
-	result := []U{}
-
-	for i := range items {
-		result = append(result, fn(items[i]))
+	if pos >= n {
+		return nil, fmt.Errorf("q position: out of bounds")
 	}
-	return result
-}
 
-func Filter[T any](items []T, predicate func(T) bool) []T {
-
-	result := []T{}
-
-	for _, v := range items {
-		if predicate(v) {
-			result = append(result, v)
+	for i := range n {
+		if i == pos {
+			row = append(row, "Q")
+		} else {
+			row = append(row, ".")
 		}
 	}
-
-	return result
+	return row, nil
 }
 
-type Set[T comparable] struct {
-	Elements map[T]struct{}
+func randPos(n int) int {
+	return rand.IntN(n)
 }
 
-func (s *Set[T]) Add(value T) {
-	s.Elements[value] = struct{}{}
-}
+func separator(n int, s string) string {
 
-func (s *Set[T]) Contains(value T) bool {
+	var result strings.Builder
 
-	if _, ok := s.Elements[value]; ok {
-		return true
+	for range n {
+		result.WriteString(s)
 	}
 
-	return false
+	return result.String()
 }
 
 func main() {
 
+	n := 2
+
+	// board := [][]string{}
+
+	for i := range n {
+		// result, err := rowCreator(randPos(n), n)
+		result, err := rowCreator(i, n)
+		if err != nil {
+			fmt.Printf("loop error")
+		}
+		fmt.Printf("%d: %v\n", i, result)
+		// board = append(board, result)
+	}
+
+	// n = 6; l = 16; d = 10
+	// n = 5; l = 14; d = 9
+	// n = 4; l = 12; d = 8
+	// n = 3; l = 10; d = 7
+	// n = 2; l = 8;  d = 6
+	fmt.Println(separator(n+6, "-"))
+
+	for i := range n {
+		result, err := rowCreator(randPos(n), n)
+		// result, err := rowCreator(i, n)
+		if err != nil {
+			fmt.Printf("loop error")
+		}
+		fmt.Printf("%d: %v\n", i, result)
+		// board = append(board, result)
+	}
+
+	// fmt.Println(board)
 }

@@ -109,13 +109,13 @@ Graph:
 
 Starting from 0, fill in the table:
 
-| Iteration | Queue | Current | Distance from 0 | Level | Action |
-|-----------|-------|---------|-----------------|-------|--------|
-| 0 | [0] | - | - | - | Initialize |
-| 1 | [1,2] | 0 | {0:0} | 0 | Visit 0 |
-| 2 | [2,3,4] | 1 | {0:0, 1:1} | 1 | Visit 1 |
-| 3 | [3,4,4,5] | 2 | {0:0, 1:1, 2:1} | 1 | Visit 2 |
-| ... | ... | ... | ... | ... | Continue |
+| Iteration | Queue     | Current | Distance from 0 | Level | Action     |
+|-----------|-----------|---------|-----------------|-------|------------|
+| 0         | [0]       | -       | -               | -     | Initialize |
+| 1         | [1,2]     | 0       | {0:0}           | 0     | Visit 0    |
+| 2         | [2,3,4]   | 1       | {0:0, 1:1}      | 1     | Visit 1    |
+| 3         | [3,4,4,5] | 2       | {0:0, 1:1, 2:1} | 1     | Visit 2.   |
+| ...       | ...       | ...     | ...             | ...   | Continue   |
 
 **Questions:**
 1. What's the shortest distance from 0 to 5?

@@ -9,14 +9,14 @@
 ## 📊 Current Status
 
 **Overall Level:** Accelerated Beginner → Junior Track
-**Modules Completed:** 2.94/14 (Diagnostic ✅, String Mastery ✅, Fundamentals 94% ✅)
-**Modules In Progress:** 1/14 (Data Structures 🔄 11/17)
-**Modules Available:** 1/14 (Graph Theory & Algorithmic Thinking 🆕 0/15 - ready to interleave)
-**Modules Paused:** 1/14 (Algorithms ⏸️ 5/12 - deferred until Module 03)
-**Exercises Completed:** 44/~252 (17% complete)
+**Modules Completed:** 2.94/15 (Diagnostic ✅, String Mastery ✅, Fundamentals 94% ✅)
+**Modules In Progress:** 2/15 (Data Structures 🔄 11/17, Graph Theory 🔄 3/15)
+**Modules Available:** 1/15 (Recursion Mastery 🆕 0/13 - ready to interleave)
+**Modules Paused:** 1/15 (Algorithms ⏸️ 5/12 - deferred until Module 03)
+**Exercises Completed:** 47/~265 (18% complete)
 **Projects Completed:** 0/4
 
-**Current Focus:** Module 02 Data Structures (Core Curriculum)
+**Current Focus:** Module 02 Data Structures + Module 00.8 Graph Theory (Interleaved)
 
 ---
 
@@ -140,8 +140,8 @@
 - **Note:** Exercises 04-05 have failing tests - will revisit after fundamentals. Exercise 06 (JSON Parser) deferred until interface{} mastery.
 
 #### 00.8. Graph Theory & Algorithmic Thinking (Custom Module)
-- **Status:** 🆕 Not Started
-- **Exercises:** 0/15 completed
+- **Status:** 🔄 In Progress
+- **Exercises:** 3/15 completed (Exercises 01-03 ✅)
 - **Priority:** ⚠️ HIGH - Address graph algorithm understanding gap discovered in Module 02 Exercise 16
 - **Focus:** BFS/DFS mastery, shortest paths, cycles, topological sort, connected components, MST, Dijkstra, Floyd-Warshall, real-world applications
 - **Created:** 2025-11-20 in response to BFS/DFS implementation struggles
@@ -153,8 +153,26 @@
   - **Tier 4 (13-15):** Floyd-Warshall, algorithm selection, social network analysis capstone (4-5 hours)
 - **Target:** Interleave with Module 02 - alternate between data structures and graph exercises
 - **Key Insight:** Gap identified - can implement BFS/DFS from templates but lacks deep understanding of WHEN/WHY to use each algorithm
-- **Resources:** GRAPH_THEORY_GUIDE.md, ALGORITHMIC_THINKING.md added to resources/
+- **Resources:** GRAPH_THEORY_GUIDE.md, ALGORITHMIC_THINKING.md, BFS_PATTERNS_GUIDE.md added to resources/
 - **Total Estimated Time:** 12-15 hours
+
+#### 00.9. Recursion Mastery (Custom Module)
+- **Status:** 🆕 Ready to Start
+- **Exercises:** 0/13 completed
+- **Priority:** ⚠️ CRITICAL - Address recursion practice gap identified in Module 00.8 Exercise 02
+- **Focus:** Recursive thinking, backtracking, divide-and-conquer, memoization, classic algorithms
+- **Created:** 2025-11-23 in response to FindAllPathsDFS understanding difficulties
+- **Approach:** Progressive 4-tier practice curriculum (Foundation → Patterns → Divide & Conquer → Advanced)
+- **Structure:**
+  - **Tier 1 (01-03):** Foundation - Factorial, Fibonacci, Slice recursion (2-3 hours)
+  - **Tier 2 (04-07):** Patterns - Strings, helpers, list processing, integer algorithms (3-4 hours)
+  - **Tier 3 (08-10):** Divide & Conquer - Binary search, merge sort, quick sort (3-4 hours)
+  - **Tier 4 (11-13):** Advanced - Backtracking, memoization, N-Queens (3-4 hours)
+- **Target:** Interleave with Module 02 and 00.8 to maintain variety
+- **Key Insight:** "I understand recursion conceptually, but lack fluency implementing it" - needs deliberate practice
+- **Resources:** RECURSION_GUIDE.md (400+ lines) added to resources/
+- **Learning Philosophy:** Recursion is a thinking tool, not just a coding technique
+- **Total Estimated Time:** 10-12 hours
 
 #### 01. Fundamentals
 - **Status:** ✅ Complete (Partial - 94%)
