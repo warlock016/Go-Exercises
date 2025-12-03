@@ -1,76 +1,58 @@
 package main
 
 import (
-	"fmt"
-	"math/rand/v2"
-	"strings"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
 )
 
-func rowCreator(pos, n int) ([]string, error) {
-
-	row := make([]string, 0, n)
-
-	if pos >= n {
-		return nil, fmt.Errorf("q position: out of bounds")
-	}
-
-	for i := range n {
-		if i == pos {
-			row = append(row, "Q")
-		} else {
-			row = append(row, ".")
-		}
-	}
-	return row, nil
-}
-
-func randPos(n int) int {
-	return rand.IntN(n)
-}
-
-func separator(n int, s string) string {
-
-	var result strings.Builder
-
-	for range n {
-		result.WriteString(s)
-	}
-
-	return result.String()
+type OpenMeteoResponse struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Hourly    struct {
+		Time          []string  `json:"time"`
+		Temperature2m []float64 `json:"temperature_2m"`
+	} `json:"hourly"`
 }
 
 func main() {
 
-	n := 2
+	base, _ := url.Parse("https://archive-api.open-meteo.com/v1/archive")
+	q := base.Query()
+	q.Set("latitude", "52.51")
+	q.Set("longitude", "13.41")
+	q.Set("start_date", "2025-11-01")
+	q.Set("end_date", "2025-11-01")
+	q.Set("hourly", "temperature_2m")
+	q.Set("timezone", "GMT")
+	base.RawQuery = q.Encode()
 
-	// board := [][]string{}
+	response, err := http.Get(base.String())
+	if err != nil {
+		log.Fatal("Failed to query data", err)
+	}
+	defer response.Body.Close()
 
-	for i := range n {
-		// result, err := rowCreator(randPos(n), n)
-		result, err := rowCreator(i, n)
-		if err != nil {
-			fmt.Printf("loop error")
-		}
-		fmt.Printf("%d: %v\n", i, result)
-		// board = append(board, result)
+	if response.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(response.Body)
+		log.Fatalf("HTTP error %d: %s", response.StatusCode, string(b))
 	}
 
-	// n = 6; l = 16; d = 10
-	// n = 5; l = 14; d = 9
-	// n = 4; l = 12; d = 8
-	// n = 3; l = 10; d = 7
-	// n = 2; l = 8;  d = 6
-	fmt.Println(separator(n+6, "-"))
-
-	for i := range n {
-		result, err := rowCreator(randPos(n), n)
-		// result, err := rowCreator(i, n)
-		if err != nil {
-			fmt.Printf("loop error")
-		}
-		fmt.Printf("%d: %v\n", i, result)
-		// board = append(board, result)
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal("IO read error", err)
 	}
 
-	// fmt.Println(board)
+	var result OpenMeteoResponse
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		log.Fatal("JSON unmarshal error: ", err)
+	}
+
+	if len(result.Hourly.Temperature2m) != len(result.Hourly.Time) {
+		log.Fatal("timestamps and values not matching")
+	}
+
 }

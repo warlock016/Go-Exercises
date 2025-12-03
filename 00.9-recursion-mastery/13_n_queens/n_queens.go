@@ -1,6 +1,8 @@
 package n_queens
 
-import "fmt"
+import (
+	"fmt"
+)
 
 /*
 1. Only one queen per row
@@ -51,7 +53,37 @@ func SolveNQueens(n int) [][][]string {
 
 	result := make([][][]string, 0)
 	tracker := []int{} // queen[row] = column
-	return nil
+	usedCols := make(map[int]bool)
+	usedDiag1 := make(map[int]bool)
+	usedDiag2 := make(map[int]bool)
+	queenHelper(n, tracker, usedCols, usedDiag1, usedDiag2, &result)
+	return result
+}
+
+func queenHelper(n int, tracker []int, usedCols, usedDiag1, usedDiag2 map[int]bool, result *[][][]string) {
+	if len(tracker) == n {
+		// fmt.Printf("end reached: %v\n", tracker)
+		newBoard := boardCreator(n, tracker)
+		*result = append(*result, newBoard)
+		return
+	}
+
+	// fmt.Printf("board size: %d, tracker: %v, result: %v\n", n, tracker, result)
+	for i := range n {
+		if validPos(i, usedCols, usedDiag1, usedDiag2, tracker) {
+			usedCols[i] = true
+			usedDiag1[i-len(tracker)] = true
+			usedDiag2[i+len(tracker)] = true
+			tracker = append(tracker, i)
+
+			queenHelper(n, tracker, usedCols, usedDiag1, usedDiag2, result)
+			tracker = tracker[:len(tracker)-1]
+			usedCols[i] = false
+			usedDiag1[i-len(tracker)] = false
+			usedDiag2[i+len(tracker)] = false
+
+		}
+	}
 }
 
 /*
@@ -124,10 +156,29 @@ queen[6] = !0 && !6
 queen[7] = !0 && !7
 */
 
+func validPos(pos int, usedCols, usedDiag1, usedDiag2 map[int]bool, tracker []int) bool {
+
+	if len(tracker) == 0 { // no queens exist yet
+		return true
+	}
+
+	if usedCols[pos] {
+		return false
+	}
+
+	diag1 := pos - len(tracker)
+	diag2 := pos + len(tracker)
+	if usedDiag1[diag1] || usedDiag2[diag2] {
+		return false
+	}
+
+	return true
+}
+
 func rowCreator(n, pos int) ([]string, error) {
 
 	if pos >= n {
-		return nil, fmt.Errorf("q position out of bounds!")
+		return nil, fmt.Errorf("queen position out of bounds")
 	}
 
 	row := make([]string, 0, n)
@@ -142,8 +193,55 @@ func rowCreator(n, pos int) ([]string, error) {
 	return row, nil
 }
 
+func boardCreator(n int, board []int) [][]string {
+
+	if n != len(board) {
+		panic("error: incomplete board")
+	}
+
+	result := make([][]string, 0, n)
+
+	for i, pos := range board {
+		row, err := rowCreator(n, pos)
+		if err != nil {
+			panic(fmt.Sprintf("row :%d, %v", i, err))
+		}
+		result = append(result, row)
+	}
+
+	return result
+}
+
 // CountNQueens counts the number of solutions (more efficient)
 func CountNQueens(n int) int {
 	// TODO(human): Implement
-	return 0
+	usedCols := make(map[int]bool)
+	usedDiag1 := make(map[int]bool)
+	usedDiag2 := make(map[int]bool)
+	return countHelper(n, usedCols, usedDiag1, usedDiag2, []int{})
+}
+
+func countHelper(n int, usedCols, usedDiag1, usedDiag2 map[int]bool, tracker []int) int {
+	if len(tracker) == n {
+		return 1
+	}
+
+	result := 0
+
+	for i := range n {
+		if validPos(i, usedCols, usedDiag1, usedDiag2, tracker) {
+			usedDiag1[i-len(tracker)] = true
+			usedDiag2[i+len(tracker)] = true
+			usedCols[i] = true
+			tracker = append(tracker, i)
+
+			result += countHelper(n, usedCols, usedDiag1, usedDiag2, tracker)
+			tracker = tracker[:len(tracker)-1]
+			usedCols[i] = false
+			usedDiag1[i-len(tracker)] = false
+			usedDiag2[i+len(tracker)] = false
+		}
+	}
+
+	return result
 }

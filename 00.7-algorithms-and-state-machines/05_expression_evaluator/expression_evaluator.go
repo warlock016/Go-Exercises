@@ -2,8 +2,11 @@ package expressionevaluator
 
 import (
 	"fmt"
+	"strconv"
 	_ "strconv"
+	"strings"
 	_ "strings"
+	"unicode"
 	_ "unicode"
 )
 
@@ -32,7 +35,32 @@ func Evaluate(expr string) (int, error) {
 	// Hint: If parser.pos < len(parser.tokens)-1 after parsing,
 	// there are leftover tokens (error condition)
 
-	return 0, nil
+	tokens, err := tokenize(expr)
+
+	fmt.Printf("Tokens: %v\n", tokens)
+
+	if err != nil {
+		return 0, fmt.Errorf("invalid tokens")
+	}
+
+	newParser := Parser{
+		tokens: make([]Token, 0),
+		// pos:    0,
+	}
+
+	newParser.tokens = append(newParser.tokens, tokens...)
+
+	result, err := newParser.parseExpression()
+
+	// if newParser.pos < len(newParser.tokens)-1 {
+	// 	return 0, fmt.Errorf("leftover tokens")
+	// }
+
+	if newParser.currentToken().Type != "EOF" {
+		return 0, fmt.Errorf("leftover tokens")
+	}
+
+	return result, err
 }
 
 // tokenize converts a string expression into tokens
@@ -51,14 +79,58 @@ func tokenize(expr string) ([]Token, error) {
 	//
 	// Example: "2 + 3" → [NUMBER(2), PLUS, NUMBER(3), EOF]
 
-	// for _, r := range expr {
-	// 	switch unicode.IsDigit(r) {
-	// 	case true:
-	// 	case false:
-	// 	}
-	// }
+	result := []Token{}
+	numState := false
+	var currentNum strings.Builder
 
-	return nil, nil
+	for i, v := range expr {
+		if unicode.IsDigit(v) {
+			numState = true
+			currentNum.WriteRune(v)
+
+			// if we reached the end, then convert the digit string to int and append the Token
+			if i == len(expr)-1 {
+				value, err := strconv.Atoi(currentNum.String())
+				if err != nil {
+					return nil, fmt.Errorf("string to int conversion error")
+				}
+				result = append(result, Token{Type: "NUMBER", Value: value})
+			}
+		} else {
+			// if we encounter a non-digit character, then we need to create the digit token and append it, before proceeding with the character parsing
+			if numState {
+				numState = false
+				value, err := strconv.Atoi(currentNum.String())
+				if err != nil {
+					return nil, fmt.Errorf("string to int conversion error")
+				}
+				result = append(result, Token{Type: "NUMBER", Value: value})
+				currentNum.Reset()
+			}
+
+			switch v {
+			case '+':
+				result = append(result, Token{Type: "PLUS"})
+			case '-':
+				result = append(result, Token{Type: "MINUS"})
+			case '/':
+				result = append(result, Token{Type: "DIV"})
+			case '*':
+				result = append(result, Token{Type: "MUL"})
+			case '(':
+				result = append(result, Token{Type: "LPAREN"})
+			case ')':
+				result = append(result, Token{Type: "RPAREN"})
+			case ' ':
+				continue
+			default:
+				return nil, fmt.Errorf("unknown token %v", v)
+			}
+		}
+	}
+
+	result = append(result, Token{Type: "EOF"})
+	return result, nil
 }
 
 // parseExpression handles addition and subtraction (lowest precedence)
@@ -77,7 +149,36 @@ func (p *Parser) parseExpression() (int, error) {
 	// Hint: This is where you handle left-to-right evaluation
 	// for operators of the same precedence
 
-	return 0, nil
+	var result int
+	var err error = nil
+
+	result, err = p.parseTerm()
+
+	if err != nil {
+		return 0, err
+	}
+
+	for p.currentToken().Type == "MINUS" || p.currentToken().Type == "PLUS" {
+		op := p.currentToken().Type
+		p.advance()
+
+		right, err := p.parseTerm()
+
+		if err != nil {
+			return 0, err
+		}
+
+		switch op {
+		case "PLUS":
+			result += right
+		case "MINUS":
+			result -= right
+		default:
+			return 0, fmt.Errorf("invalid operation")
+		}
+	}
+
+	return result, err
 }
 
 // parseTerm handles multiplication and division (higher precedence)
@@ -92,7 +193,35 @@ func (p *Parser) parseTerm() (int, error) {
 	// Think: Why does calling parseFactor() make multiplication
 	// happen before addition?
 
-	return 0, nil
+	var result int
+	var err error = nil
+
+	result, err = p.parseFactor()
+
+	if err != nil {
+		return 0, err
+	}
+
+	for p.currentToken().Type == "MUL" || p.currentToken().Type == "DIV" {
+		op := p.currentToken().Type
+		p.advance()
+
+		right, err := p.parseFactor()
+
+		if err != nil {
+			return 0, err
+		}
+
+		if op == "MUL" {
+			result *= right
+		} else if op == "DIV" && right != 0 {
+			result /= right
+		} else {
+			return 0, fmt.Errorf("invalid division by zero")
+		}
+	}
+
+	return result, err
 }
 
 // parseFactor handles numbers and parentheses (highest precedence)
@@ -117,7 +246,29 @@ func (p *Parser) parseFactor() (int, error) {
 	// Think: Why does recursively calling parseExpression()
 	// make parentheses work correctly?
 
-	return 0, nil
+	var result int
+	var err error = nil
+
+	if p.currentToken().Type == "NUMBER" {
+		result = p.currentToken().Value
+		p.advance()
+		// return result, nil
+	} else if p.currentToken().Type == "LPAREN" {
+		p.advance()
+		result, err = p.parseExpression()
+		if err != nil {
+			return 0, fmt.Errorf("error parsing expression")
+		}
+		err = p.expect("RPAREN")
+
+		if err != nil {
+			return 0, fmt.Errorf("invalid expression")
+		}
+	} else {
+		return 0, fmt.Errorf("unexpected token")
+	}
+
+	return result, err
 }
 
 // currentToken returns the current token
