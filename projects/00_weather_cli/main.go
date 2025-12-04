@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	// fmt.Println(lat, long, start, end, tz, hourly)
-	result, err := FetchData(lat, long, start, end, hourly, tz)
+	openMeteo, err := FetchData(lat, long, start, end, hourly, tz)
 
 	if err != nil {
 		fmt.Printf("%v", err)
@@ -40,7 +40,7 @@ func main() {
 
 	// Unpacking data for tabular representation
 	// data
-	for key, value := range result.Hourly {
+	for key, value := range openMeteo.Hourly {
 		if rawSlice, ok := value.([]any); ok {
 			for _, v := range rawSlice {
 				switch key {
@@ -57,27 +57,29 @@ func main() {
 		}
 	}
 	// units
-	for key, value := range result.HourlyUnits {
+	for key, value := range openMeteo.HourlyUnits {
 		units[key] = value.(string)
 	}
 
-	byteRep, err := json.MarshalIndent(result, "", "  ")
+	byteRep, err := json.MarshalIndent(openMeteo, "", "  ")
 
-	// fmt.Println(units)
-
-	// os.
 	err = os.WriteFile("./cache.json", byteRep, 0o644)
 
 	if err != nil {
 		fmt.Printf("Error saving JSON: %v\n", err)
 	}
 
-	// fmt.Println(string(byteRep))
-
-	loc, err := FetchLocation(lat, long)
+	geoLoc, err := FetchLocation(lat, long)
 
 	if err != nil {
 		fmt.Printf("Error fetching geolocation: %v", err)
 	}
 
+	result, err := Formatter(&openMeteo, &geoLoc, timestamps, variables, units, format)
+
+	if err != nil {
+		fmt.Printf("Formatter error: %v", err)
+	}
+
+	fmt.Println(result)
 }

@@ -198,16 +198,33 @@
 - **Achievement:** Can now design data structures, choose appropriate types, and implement complex patterns
 
 #### 03. Functions & Methods
-- **Status:** Locked
-- **Exercises:** 0/17 completed
+- **Status:** 🆕 Ready to Start
+- **Exercises:** 0/15 completed
+- **Focus:** Variadic functions, closures, higher-order functions, methods, HTTP handlers, middleware
+- **HTTP Integration:** Exercises 08, 09, 14, 15 cover HTTP handler patterns
+- **Created:** 2025-12-04
+- **Estimated Time:** 10-14 hours
+- **Prerequisites:** Module 02 ✅
 
 #### 04. Error Handling
-- **Status:** Locked
-- **Exercises:** 0/15 completed
+- **Status:** 🆕 Ready to Start (after Module 03)
+- **Exercises:** 0/14 completed
+- **Focus:** Error creation, wrapping, sentinel errors, custom types, HTTP error responses
+- **HTTP Integration:** Exercises 08, 09, 10, 13, 14 cover API error patterns
+- **Created:** 2025-12-04
+- **Estimated Time:** 8-12 hours
+- **Prerequisites:** Module 03
 
 #### 05. Testing
-- **Status:** Locked
+- **Status:** 🆕 Ready to Start (after Module 04) - CRITICAL GAP
 - **Exercises:** 0/15 completed
+- **Priority:** ⚠️ HIGH - Addresses 40% testing skill gap from diagnostic
+- **Focus:** Table-driven tests, subtests, benchmarks, HTTP testing, mocking, TDD
+- **HTTP Integration:** Exercises 08, 09, 10, 13, 14 cover httptest patterns
+- **Special:** Student writes tests for provided working code (inverted structure)
+- **Created:** 2025-12-04
+- **Estimated Time:** 10-14 hours
+- **Prerequisites:** Module 04
 
 ### Phase 2: Application (Weeks 9-16)
 

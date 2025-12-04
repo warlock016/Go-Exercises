@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/hashicorp/go-envparse"
 )
@@ -70,18 +69,18 @@ type GeoApiResonse struct {
 	BoundingBox []string `json:"boundingbox"`
 }
 
-func FetchLocation(lat, long string) (string, error) {
+func FetchLocation(lat, long string) (GeoApiResonse, error) {
 
-	var result strings.Builder
+	var result GeoApiResonse
 	env, err := os.Open("./.env")
 	if err != nil {
-		return result.String(), fmt.Errorf("error opening env file: %s", err)
+		return result, fmt.Errorf("error opening env file: %s", err)
 	}
 	defer env.Close()
 
 	envMap, err := envparse.Parse(env)
 	if err != nil {
-		return result.String(), fmt.Errorf("error reading env file: %s", err)
+		return result, fmt.Errorf("error reading env file: %s", err)
 	}
 
 	base, _ := url.Parse("https://geocode.maps.co/reverse")
@@ -91,40 +90,30 @@ func FetchLocation(lat, long string) (string, error) {
 	q.Set("api_key", envMap["GEOCODE_API"])
 	base.RawQuery = q.Encode()
 
-	// fmt.Println(base.String())
-
 	resp, err := http.Get(base.String())
 
 	if err != nil {
-		return result.String(), fmt.Errorf("Failed to query data: %v", err)
+		return result, fmt.Errorf("Failed to query data: %v", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
-		return result.String(), fmt.Errorf("HTTP error: %d, %s", resp.StatusCode, string(b))
+		return result, fmt.Errorf("HTTP error: %d, %s", resp.StatusCode, string(b))
 	}
 
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		return result.String(), fmt.Errorf("IO read error: %v", err)
+		return result, fmt.Errorf("IO read error: %v", err)
 	}
 
-	obj := GeoApiResonse{}
-	err = json.Unmarshal(body, &obj)
+	err = json.Unmarshal(body, &result)
 
 	if err != nil {
-		return result.String(), fmt.Errorf("JSON unmarshal error: %v", err)
+		return result, fmt.Errorf("JSON unmarshal error: %v", err)
 	}
 
-	result.WriteString(obj.Name)
-	result.WriteString(", ")
-	result.WriteString(obj.Address.Country)
-	// result.WriteString(" [")
-	// result.WriteString(strings.ToUpper(obj.Address.CountryCode))
-	// result.WriteString("]")
-
-	return result.String(), nil
+	return result, nil
 }
