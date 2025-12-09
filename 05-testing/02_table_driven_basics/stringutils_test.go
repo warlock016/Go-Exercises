@@ -1,65 +1,71 @@
 package stringutils
 
-import "testing"
+import (
+	"testing"
+)
 
-// TODO(human): Create a table-driven test for the Reverse function
-// Structure:
-//   func TestReverse(t *testing.T) {
-//       tests := []struct {
-//           name  string
-//           input string
-//           want  string
-//       }{
-//           {"test case name", "input", "expected"},
-//           // Add 5-6 test cases
-//       }
-//
-//       for _, tt := range tests {
-//           got := Reverse(tt.input)
-//           if got != tt.want {
-//               t.Errorf("Reverse(%q) = %q, want %q", tt.input, got, tt.want)
-//           }
-//       }
-//   }
-//
-// Test cases to include:
-// - Simple word: "hello" → "olleh"
-// - Empty string: "" → ""
-// - Single character: "a" → "a"
-// - Palindrome: "racecar" → "racecar"
-// - With spaces: "hello world" → "dlrow olleh"
-// - Your choice of additional cases
+func TestReverse(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"simple", "hello", "olleh"},
+		{"complex", "hola, adios", "soida ,aloh"},
+		{"palindrome", "race car", "rac ecar"},
+	}
 
-// TODO(human): Create a table-driven test for the IsPalindrome function
-// Structure:
-//   tests := []struct {
-//       name  string
-//       input string
-//       want  bool
-//   }{
-//       {"test case name", "input", true/false},
-//   }
-//
-// Test cases to include:
-// - True palindromes: "racecar", "noon"
-// - Not palindromes: "hello", "golang"
-// - Edge cases: "", "a"
-// - Two characters: "aa" (true), "ab" (false)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Reverse(tt.input)
 
-// TODO(human): Create a table-driven test for the CountVowels function
-// Structure:
-//   tests := []struct {
-//       name  string
-//       input string
-//       want  int
-//   }{
-//       {"test case name", "input", expectedCount},
-//   }
-//
-// Test cases to include:
-// - "hello" → 2 (e, o)
-// - "xyz" → 0 (no vowels)
-// - "aeiou" → 5 (all vowels)
-// - "" → 0 (empty)
-// - "AEIOU" → 5 (uppercase vowels)
-// - "Hello World" → 3 (mixed case)
+			if got != tt.want {
+				t.Errorf("Reverse(%s) got: %s want: %s", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsPalindrome(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{"not", "hello", false},
+		{"simple", "racecar", true},
+		{"complex", "race car", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsPalindrome(tt.input)
+
+			if got != tt.want {
+				t.Errorf("Reverse(%s) got: %v want: %v", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCountVowels(t *testing.T) {
+	tests := []struct {
+		name string
+		str  string
+		want int
+	}{
+		{"simple", "a", 1},
+		{"complex", "mississipi", 4},
+		{"consonants", "qwytznvplkjhmxc", 0},
+		{"vowels", "aeiou", 5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CountVowels(tt.str)
+			if got != tt.want {
+				t.Errorf("Unexpected count: got %d, want %d", got, tt.want)
+			}
+		})
+	}
+}

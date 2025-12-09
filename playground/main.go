@@ -1,58 +1,59 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
+	"context"
+	"fmt"
+	"strings"
+	"time"
 )
 
-type OpenMeteoResponse struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
-	Hourly    struct {
-		Time          []string  `json:"time"`
-		Temperature2m []float64 `json:"temperature_2m"`
-	} `json:"hourly"`
+type WorkResult struct {
+	Output string
+	Error  error
+}
+
+func doWork(s string, milliseconds time.Duration) WorkResult {
+
+	var output strings.Builder
+	result := WorkResult{}
+
+	start := time.Now()
+	output.WriteString(fmt.Sprintf("began work: %s\n", start.Format(time.RFC3339)))
+	time.Sleep(milliseconds)
+	if output.String() == "" {
+		result.Error = fmt.Errorf("invalid work output %s", s)
+	} else {
+		output.WriteString(fmt.Sprintf("finished work. Elapsed time %v ms\n", time.Since(start)))
+	}
+	result.Output = output.String()
+	return result
 }
 
 func main() {
+	results := make(chan WorkResult, 3)
+	params := map[string]time.Duration{"fast": 200 * time.Millisecond, "normal": 400 * time.Millisecond, "slow": 700 * time.Millisecond}
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
 
-	base, _ := url.Parse("https://archive-api.open-meteo.com/v1/archive")
-	q := base.Query()
-	q.Set("latitude", "52.51")
-	q.Set("longitude", "13.41")
-	q.Set("start_date", "2025-11-01")
-	q.Set("end_date", "2025-11-01")
-	q.Set("hourly", "temperature_2m")
-	q.Set("timezone", "GMT")
-	base.RawQuery = q.Encode()
-
-	response, err := http.Get(base.String())
-	if err != nil {
-		log.Fatal("Failed to query data", err)
+	for key, dur := range params {
+		go func(key string, dur time.Duration) {
+			results <- doWork(key, dur)
+		}(key, dur)
 	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(response.Body)
-		log.Fatalf("HTTP error %d: %s", response.StatusCode, string(b))
+	count := 0
+	for range params {
+		select {
+		case res := <-results:
+			if res.Error != nil {
+				fmt.Printf("Error: %v\n", res.Error)
+			} else {
+				count++
+				fmt.Println(res.Output)
+			}
+		case <-ctx.Done():
+			fmt.Printf("Timeout! Only received %d/%d results\n", count, len(params))
+			return
+		}
 	}
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal("IO read error", err)
-	}
-
-	var result OpenMeteoResponse
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		log.Fatal("JSON unmarshal error: ", err)
-	}
-
-	if len(result.Hourly.Temperature2m) != len(result.Hourly.Time) {
-		log.Fatal("timestamps and values not matching")
-	}
-
+	fmt.Println("All workers completed")
 }

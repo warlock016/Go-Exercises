@@ -28,11 +28,11 @@ func TestValidationErrors_HasErrors(t *testing.T) {
 
 func TestValidateUser(t *testing.T) {
 	tests := []struct {
-		name        string
-		userName    string
-		email       string
-		age         int
-		wantErr     bool
+		name         string
+		userName     string
+		email        string
+		age          int
+		wantErr      bool
 		wantErrCount int
 	}{
 		{"valid", "John", "john@example.com", 30, false, 0},
@@ -54,6 +54,43 @@ func TestValidateUser(t *testing.T) {
 				}
 				if len(ve.Errors) != tt.wantErrCount {
 					t.Errorf("ValidateUser() error count = %d, want %d", len(ve.Errors), tt.wantErrCount)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateProduct(t *testing.T) {
+	tests := []struct {
+		name         string
+		productName  string
+		price        float64
+		quantity     int
+		wantErr      bool
+		wantErrCount int
+	}{
+		{"all valid", "apple", 250, 1, false, 0},
+		{"all invalid", "", -1, 0, true, 3},
+		{"invalid price", "kiwi", -50, 1, true, 1},
+		{"invalid quantity", "orange", 300, -1, true, 1},
+		{"invalid name", "", 5000, 3, true, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateProduct(tt.productName, tt.price, tt.quantity)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateProduct() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				ve, ok := err.(*ValidationErrors)
+				if !ok {
+					t.Errorf("ValidateProduct is not *ValidationErrors")
+					return
+				}
+
+				if len(ve.Errors) != tt.wantErrCount {
+					t.Errorf("ValidateProduct() error count: %d, want %d", len(ve.Errors), tt.wantErrCount)
 				}
 			}
 		})

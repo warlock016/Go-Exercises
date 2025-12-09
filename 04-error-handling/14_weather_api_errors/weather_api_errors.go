@@ -1,5 +1,7 @@
 package weather_api_errors
 
+import "fmt"
+
 // This exercise is about refactoring your Weather CLI project
 // located in /Users/mode/Documents/Code/Go Exercises/projects/00_weather_cli/
 
@@ -21,7 +23,7 @@ type WeatherAPIError struct {
 
 func (e *WeatherAPIError) Error() string {
 	// TODO(human): Implement
-	return ""
+	return fmt.Sprintf("Status Code: %d, Message: %s, City: %s", e.StatusCode, e.Message, e.City)
 }
 
 // GeocodeError represents a geocoding error
@@ -32,7 +34,7 @@ type GeocodeError struct {
 
 func (e *GeocodeError) Error() string {
 	// TODO(human): Implement
-	return ""
+	return fmt.Sprintf("City: %s, Reason: %s", e.City, e.Reason)
 }
 
 // TODO(human): Apply these patterns to your Weather CLI project

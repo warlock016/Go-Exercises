@@ -2,6 +2,7 @@ package error_wrapping
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -44,10 +45,10 @@ func TestOpenAndReadFile(t *testing.T) {
 
 func TestProcessUser(t *testing.T) {
 	tests := []struct {
-		name    string
+		name     string
 		userName string
-		email   string
-		wantErr bool
+		email    string
+		wantErr  bool
 	}{
 		{"valid user", "John", "john@example.com", false},
 		{"empty name", "", "john@example.com", true},
@@ -70,7 +71,7 @@ func TestProcessUser(t *testing.T) {
 
 func TestUnwrapOnce(t *testing.T) {
 	inner := errors.New("inner error")
-	wrapped := errors.New("outer error")
+	wrapped := fmt.Errorf("outer error: %w", inner)
 
 	tests := []struct {
 		name string
@@ -79,6 +80,7 @@ func TestUnwrapOnce(t *testing.T) {
 	}{
 		{"nil error", nil, nil},
 		{"unwrappable error", inner, nil},
+		{"wrapped error", wrapped, inner},
 	}
 
 	for _, tt := range tests {

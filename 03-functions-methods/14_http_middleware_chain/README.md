@@ -121,7 +121,7 @@ func CORSMiddleware(allowedOrigins []string) func(http.HandlerFunc) http.Handler
 			origin := r.Header.Get("Origin")
 			allowed := false
 
-			for _, allowed Origin := range allowedOrigins {
+			for _, allowedOrigin := range allowedOrigins {
 				if allowedOrigin == "*" || allowedOrigin == origin {
 					allowed = true
 					break

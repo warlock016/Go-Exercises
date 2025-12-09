@@ -2,6 +2,146 @@ package user
 
 import "testing"
 
+func setupUser(t *testing.T, name, email string) *User {
+	t.Helper()
+	user, err := NewUser(name, email)
+	assertNoError(t, err)
+	return user
+}
+
+func assertNoError(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func assertError(t *testing.T, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func assertEqual(t *testing.T, got, want any) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func TestNewUser(t *testing.T) {
+	tests := []struct {
+		Name    string
+		User    string
+		Email   string
+		wantErr bool
+	}{
+		{"valid", "Alice", "alice@gmail.com", false},
+		{"empty name", "", "alice@gmail.com", true},
+		{"invalid email", "Charlie", "charlieyahoo.co.uk", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			user, err := NewUser(tt.User, tt.Email)
+			if tt.wantErr {
+				assertError(t, err)
+			} else {
+				assertNoError(t, err)
+				assertEqual(t, user.Name, tt.User)
+			}
+		})
+	}
+}
+
+func TestValidate(t *testing.T) {
+	tests := []struct {
+		Name    string
+		User    string
+		Email   string
+		wantErr bool
+	}{
+		{
+			Name:    "valid user",
+			User:    "Alice",
+			Email:   "alice@gmail.com",
+			wantErr: false,
+		},
+		{
+			Name:    "empty name",
+			User:    "",
+			Email:   "bob@gmail.com",
+			wantErr: true,
+		},
+		{
+			Name:    "invalid email",
+			User:    "Charlie",
+			Email:   "charlieoutlook.com",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			var user *User
+			if tt.wantErr {
+				user = &User{
+					Name:  tt.User,
+					Email: tt.Email,
+				}
+				err := user.Validate()
+				assertError(t, err)
+			} else {
+				user = setupUser(t, tt.User, tt.Email)
+				err := user.Validate()
+				assertNoError(t, err)
+				assertEqual(t, user.Name, tt.User)
+				assertEqual(t, user.Email, tt.Email)
+			}
+		})
+	}
+}
+
+func TestUpdateEmail(t *testing.T) {
+	tests := []struct {
+		Name     string
+		User     string
+		OldEmail string
+		Email    string
+		wantErr  bool
+	}{
+		{
+			Name:     "valid email",
+			User:     "Alice",
+			OldEmail: "alice@gmail.com",
+			Email:    "alice@gmail.de",
+			wantErr:  false,
+		},
+		{
+			Name:     "invalid email",
+			User:     "Bob",
+			OldEmail: "bob@gmx.de",
+			Email:    "bobbygreengmx.de",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			user := setupUser(t, tt.User, tt.OldEmail)
+			err := user.UpdateEmail(tt.Email)
+			if tt.wantErr {
+				assertError(t, err)
+				assertEqual(t, user.Email, tt.OldEmail)
+			} else {
+				assertNoError(t, err)
+				assertEqual(t, user.Email, tt.Email)
+			}
+		})
+	}
+}
+
 // TODO(human): Create helper functions at the top of this file
 //
 // Helper 1: assertNoError(t *testing.T, err error)
