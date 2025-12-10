@@ -74,26 +74,26 @@ func (c *GeoClient) FetchGeoData(ctx context.Context, req GeoRequest) (*types.Ge
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
 		switch resp.StatusCode {
+
 		// Client-Side Errors
-		case 400, 422:
-			err = apiErrors.ErrInvalidInput // bad request, failed validation
 		case 401, 403:
-			err = apiErrors.ErrUnauthorized // unauthorized, forbidden
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrUnauthorized, resp.StatusCode, base.String())
 		case 404:
-			err = apiErrors.ErrNotFound // not found
-		case 405, 409, 415:
-			err = apiErrors.ErrInvalidInput // wrong http method, ressource conflict, wrong content-type
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrNotFound, resp.StatusCode, base.String())
+		case 400, 422, 405, 409, 415:
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrInvalidInput, resp.StatusCode, base.String())
 		case 429:
-			err = apiErrors.ErrRateLimited // rate limited
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrRateLimited, resp.StatusCode, base.String())
 
 		// Server-Side Errors
 		case 500, 502, 503, 504:
-			err = apiErrors.ErrNetwork // unexpected, upstream, overload, timeout server errors
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrNetwork, resp.StatusCode, base.String())
 		case 501:
-			err = apiErrors.ErrNotFound // feature not implemented
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrNotFound, resp.StatusCode, base.String())
 		default:
-			err = apiErrors.ErrNetwork // undefined error
+			err = fmt.Errorf("%w: HTTP %d from %s", apiErrors.ErrNetwork, resp.StatusCode, base.String())
 		}
+
 		return nil, &apiErrors.GeocodeError{
 			StatusCode: resp.StatusCode,
 			Message:    fmt.Sprintf("Error %d, got %s", resp.StatusCode, string(b)),

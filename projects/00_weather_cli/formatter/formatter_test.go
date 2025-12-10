@@ -33,7 +33,6 @@ func mockGeoData(t *testing.T) *types.GeoData {
 	return &types.GeoData{
 		DisplayName: "Berlin, Germany",
 		City:        "Berlin",
-		State:       "Berlin",
 		Country:     "Germany",
 		CountryCode: "DE",
 		Latitude:    52.52,

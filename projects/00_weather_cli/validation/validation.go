@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -30,46 +31,67 @@ type ValidatedInput struct {
 }
 
 func Validate(input CLIInput) (*ValidatedInput, error) {
+
 	result := ValidatedInput{}
+	errs := &errors.ValidationErrors{}
+
 	lat, err := validateLatitude(input.Latitude)
 	if err != nil {
-		return &result, fmt.Errorf("invalid latitude: %v", err)
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.Latitude = lat
 	}
-	result.Latitude = lat
 
 	lon, err := validateLongitude(input.Longitude)
 	if err != nil {
-		return &result, fmt.Errorf("invalid longitude: %v", err)
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.Longitude = lon
 	}
-	result.Longitude = lon
 
 	dt, err := validateDate(input.StartDate, "startDate")
 	if err != nil {
-		return &result, fmt.Errorf("invalid start date %v", err)
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.StartDate = dt
 	}
-	result.StartDate = dt
 
 	df, err := validateDate(input.EndDate, "endDate")
 	if err != nil {
-		return &result, fmt.Errorf("invalid end date %v", err)
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.EndDate = df
 	}
-	result.EndDate = df
 
 	if err = validateDateRange(dt, df); err != nil {
-		return &result, fmt.Errorf("invalid range %v", err)
+		errs.Add(err.Field, err.Message)
+	}
+
+	tz, err := validateTimezone(input.Timezone)
+	if err != nil {
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.Timezone = tz
+	}
+
+	variables, err := validateVariables(input.Variables)
+	if err != nil {
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.Variables = append(result.Variables, variables...)
+		slices.Sort(result.Variables)
 	}
 
 	format, err := validateFormat(input.Format)
 	if err != nil {
-		return &result, fmt.Errorf("invalid format %v", err)
+		errs.Add(err.Field, err.Message)
+	} else {
+		result.Format = format
 	}
-	result.Format = format
 
-	variables, err := validateVariables(input.Variables)
-	if err != nil {
-		return &result, fmt.Errorf("invalid variables %v", err)
+	if len(errs.Errors) != 0 {
+		return nil, errs
 	}
-	result.Variables = append(result.Variables, variables...)
 
 	return &result, nil
 }
@@ -132,6 +154,25 @@ func validateDateRange(start, end time.Time) *errors.FieldError {
 	return nil
 }
 
+func validateTimezone(timezone string) (string, *errors.FieldError) {
+
+	newErr := errors.FieldError{
+		Field: "timezone",
+	}
+
+	if timezone == "" {
+		newErr.Message = "empty timezone field"
+		return "", &newErr
+	}
+
+	if _, err := time.LoadLocation(timezone); err != nil {
+		newErr.Message = fmt.Sprintf("invalid timezone: %s %v", timezone, err)
+		return "", &newErr
+	}
+
+	return timezone, nil
+}
+
 func validateFormat(format string) (string, *errors.FieldError) {
 	if format == "json" || format == "table" {
 		return format, nil
@@ -142,6 +183,7 @@ func validateFormat(format string) (string, *errors.FieldError) {
 		Message: "invalid !(json/table)",
 	}
 }
+
 func validateVariables(variables string) ([]string, *errors.FieldError) {
 
 	newErr := errors.FieldError{

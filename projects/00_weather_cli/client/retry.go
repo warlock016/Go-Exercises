@@ -34,10 +34,10 @@ func RetryWithBackoff(fn func() error, config RetryConfig) error {
 			return nil
 		}
 		if !IsRetriable(err) {
-			return fmt.Errorf("non-retriable error %v", err)
+			return fmt.Errorf("non-retriable error: %w", err)
 		}
 		if i == config.MaxAttempts-1 {
-			return fmt.Errorf("reached max attempts: %v", err)
+			return fmt.Errorf("reached max attempts: %w", err)
 		}
 		time.Sleep(delay)
 		delay = time.Duration(config.Multiplier * float64(delay))

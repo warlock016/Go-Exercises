@@ -5,6 +5,8 @@ type WeatherData struct {
 	Longitude   float64           `json:"longitude"`
 	Elevation   float64           `json:"elevation"`
 	Timezone    string            `json:"timezone"`
+	Offset      int               `json:"utc_offset_seconds"`
+	Variables   []string          // ordered set of variables for ordering data
 	HourlyUnits map[string]string `json:"hourly_units"`
 	Hourly      map[string][]any  `json:"hourly"`
 }

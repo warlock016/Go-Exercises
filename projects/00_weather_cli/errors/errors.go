@@ -17,7 +17,8 @@ var (
 	ErrUnauthorized error = errors.New("unauthorized")
 
 	// Input errors
-	ErrInvalidInput error = errors.New("invalid input")
+	ErrInvalidInput  error = errors.New("invalid input")
+	ErrMissingConfig error = errors.New("missing configuration (.env)")
 )
 
 // OpenMeteo API errors
