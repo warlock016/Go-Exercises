@@ -6,10 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 
@@ -138,10 +136,6 @@ func (c *GeoClient) FetchGeoData(ctx context.Context, req GeoRequest) (*types.Ge
 		Message:    "",
 		Query:      base.String(),
 		ErrorType:  apiErrors.ErrInvalidInput, // all errors from here are of this type
-	}
-
-	if err := os.WriteFile("./weatherCache.json", body, 0o644); err != nil {
-		log.Fatalf("error writing to weather cache file: %+v", err)
 	}
 
 	err = json.Unmarshal(body, &data)

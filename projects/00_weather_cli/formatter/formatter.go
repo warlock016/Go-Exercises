@@ -149,10 +149,12 @@ func Median(inputs []any) float64 {
 
 func FormatTable(input FormatterInput) (string, error) {
 	var output strings.Builder
+	var blanks int = 13
+	var sep int = 1
 
 	// Summary
 	times := input.Weather.Hourly["time"]
-	output.WriteString(fmt.Sprintf("\nWeather Report: %s\n", input.Location.DisplayName))
+	output.WriteString(fmt.Sprintf("\nHourly Weather Report:\n\n%s\n", input.Location.DisplayName))
 	output.WriteString(fmt.Sprintf("Lat, Lon: %.2f, %.2f (%s) UTC Offset (s): %d\n", input.Weather.Latitude, input.Weather.Longitude, input.Weather.Timezone, input.Weather.Offset))
 
 	start := input.Weather.Hourly["time"][0].(string)
@@ -162,16 +164,8 @@ func FormatTable(input FormatterInput) (string, error) {
 
 	// Table headers (Time, ...Variable names)
 	keyCharCount := make(map[string]int)
-	// keys := []string{}                                         // ordered list of keys
-	output.WriteString("Time" + strings.Repeat(" ", 13) + "|") // 18 character space == 4 + 13 + 1
-	keyCharCount["time"] = 4 + 13 + 1                          // > timestamp length (15 chars for YYYY-MM-DD HH:MM string)
-
-	// for key := range input.Weather.Hourly {
-	// 	if key != "time" {
-	// 		keys = append(keys, key)
-	// 	}
-	// }
-	// slices.Sort(keys)
+	output.WriteString("Time" + strings.Repeat(" ", blanks) + "|") // 18 character space == 4 + 13 + 1
+	keyCharCount["time"] = len([]rune("time")) + blanks + sep      // > timestamp length (15 chars for YYYY-MM-DD HH:MM string)
 
 	for _, v := range input.Weather.Variables {
 		if len([]rune(v)) < 10 {

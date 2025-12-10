@@ -5,9 +5,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+
 	"os"
 
-	// "go/types"
 	"log"
 	"time"
 
@@ -15,11 +15,13 @@ import (
 	"github.com/warlock016/weather_cli/config"
 	apiErrors "github.com/warlock016/weather_cli/errors"
 	"github.com/warlock016/weather_cli/formatter"
+	apiTypes "github.com/warlock016/weather_cli/types"
 	"github.com/warlock016/weather_cli/validation"
 )
 
 func main() {
 
+	// Prep & variable mapping
 	rawInput := validation.CLIInput{}
 	flag.StringVar(&rawInput.Latitude, "lat", "52.51", "Latitude (-90 to 90). Use lat=-74.01 for negative values")
 	flag.StringVar(&rawInput.Longitude, "long", "13.41", "Longitude (-180 to 180). Use long=-84.23 for negative values")
@@ -30,6 +32,7 @@ func main() {
 	flag.StringVar(&rawInput.Format, "format", "table", "Output modes: JSON, CLI Table")
 	flag.Parse()
 
+	// User input validation
 	validatedInput, err := validation.Validate(rawInput)
 	if err != nil {
 
@@ -54,6 +57,7 @@ func main() {
 		log.Fatalf("unexpected nil result && nil error")
 	}
 
+	// Load env variables
 	newConfig, err := config.Load()
 	if err != nil {
 		if errors.Is(err, apiErrors.ErrMissingConfig) {
@@ -66,6 +70,7 @@ func main() {
 		log.Fatalf("unexpected nil config")
 	}
 
+	// API Request Setup
 	ctx := context.Background()
 	weatherRequest := client.WeatherRequest{
 		Latitude:  validatedInput.Latitude,
@@ -75,13 +80,23 @@ func main() {
 		EndDate:   validatedInput.EndDate,
 		Variables: validatedInput.Variables,
 	}
+	locationRequest := client.GeoRequest{
+		Latitude:  validatedInput.Latitude,
+		Longitude: validatedInput.Longitude,
+	}
+	var weatherData *apiTypes.WeatherData
+	var locationData *apiTypes.GeoData
 
-	weatherClient := client.NewWeatherClient(newConfig.OpenMeteoURL, time.Second*15)
+	// OpenMeteo Request
+	weatherClient := client.NewWeatherClient(newConfig.OpenMeteoURL, time.Second*1)
 	if weatherClient == nil {
 		log.Fatal("unexpected nil weather client")
 	}
-
-	weatherData, err := weatherClient.FetchWeather(ctx, weatherRequest)
+	err = client.RetryWithBackoff(func() error {
+		var fetchErr error
+		weatherData, fetchErr = weatherClient.FetchWeather(ctx, weatherRequest)
+		return fetchErr
+	}, client.DefaultRetryConfig())
 	if err != nil {
 		var weatherErrs *apiErrors.WeatherAPIError
 		if errors.As(err, &weatherErrs) {
@@ -109,17 +124,16 @@ func main() {
 		log.Fatal("unexpected weather api nil result")
 	}
 
-	locationRequest := client.GeoRequest{
-		Latitude:  validatedInput.Latitude,
-		Longitude: validatedInput.Longitude,
-	}
-
-	locationClient := client.NewGeoClient(newConfig.GeocodeURL, newConfig.GeocodeAPIKey, time.Second*15)
+	// GeoCode Request
+	locationClient := client.NewGeoClient(newConfig.GeocodeURL, newConfig.GeocodeAPIKey, time.Second*1)
 	if locationClient == nil {
 		log.Fatal("unexpected nil geoapi client")
 	}
-
-	locationData, err := locationClient.FetchGeoData(ctx, locationRequest)
+	err = client.RetryWithBackoff(func() error {
+		var fetchErr error
+		locationData, fetchErr = locationClient.FetchGeoData(ctx, locationRequest)
+		return fetchErr
+	}, client.DefaultRetryConfig())
 	if err != nil {
 		var locErrs *apiErrors.GeocodeError
 		if errors.As(err, &locErrs) {
@@ -146,6 +160,7 @@ func main() {
 		log.Fatal("unexpected geo api nil result")
 	}
 
+	// Formatting & Output
 	newFormat := formatter.FormatterInput{
 		Weather:  weatherData,
 		Location: locationData,
@@ -156,14 +171,15 @@ func main() {
 	}
 
 	output, err := formatter.Format(newFormat)
-	if err != nil {
-		log.Fatalf("unexpected error %+v", err)
-	}
-	if output == nil {
+	switch {
+	case err != nil:
+		log.Fatalf("unexpected error %v", err)
+	case output == nil:
 		log.Fatal("unexpected nil Formatter result")
-	}
-	if output.Content == "" {
-		log.Fatal("unexpected empty string")
+	case output.Content == "":
+		log.Fatal("unexpected content (empty string)")
+	default:
+		// do nothing and proceed
 	}
 
 	fmt.Println(output.Content)

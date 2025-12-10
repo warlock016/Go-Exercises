@@ -46,24 +46,24 @@ func Load() (*Config, error) {
 }
 func LoadFromEnvFile(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return fmt.Errorf("failed to find file: %w %w", apiErrors.ErrMissingConfig, err)
+		return fmt.Errorf("failed to find file: %w: %w", apiErrors.ErrMissingConfig, err)
 	}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("failed to open .env file: %w %w", apiErrors.ErrMissingConfig, err)
+		return fmt.Errorf("failed to open .env file: %w: %w", apiErrors.ErrMissingConfig, err)
 	}
 	defer file.Close()
 
 	res, err := envparse.Parse(file)
 	if err != nil {
-		return fmt.Errorf("failed to parse .env file: %w %w", apiErrors.ErrMissingConfig, err)
+		return fmt.Errorf("failed to parse .env file: %w: %w", apiErrors.ErrMissingConfig, err)
 	}
 
 	for k, v := range res {
 		err := os.Setenv(k, v)
 		if err != nil {
-			return fmt.Errorf("failed to set .env key: %s, reason: %w %w", k, apiErrors.ErrMissingConfig, err)
+			return fmt.Errorf("failed to set .env key: %s, reason: %w: %w", k, apiErrors.ErrMissingConfig, err)
 		}
 	}
 

@@ -81,8 +81,5 @@ func (e *ValidationErrors) Add(field, message string) {
 }
 
 func (e *ValidationErrors) HasErrors() bool {
-	if len(e.Errors) == 0 {
-		return false
-	}
-	return true
+	return len(e.Errors) > 0
 }
