@@ -1,0 +1,43 @@
+name: weathercloud
+encoding: UTF-16LE          # File encoding (UTF-8, UTF-16LE, UTF-16BE)
+delimiter: ";"              # Field separator
+comment: "#"                # Comment line prefix
+skip_rows: 0                # Rows to skip before header
+header_rows: 1              # Number of header rows
+thousands_separator: ","    # For numeric parsing (e.g., "1,234.56")
+
+
+# Schema handling
+datetime:
+  detection: index
+  index: 0
+  formats:
+    - "02/01/2006 15:04:05"
+    - "2006-01-02 15:04:05"
+
+# Type inference rules (for dynamic mode)
+type_inference:
+  default: float64
+  string_columns: []
+
+# Column definitions (for strict mode, optional hints for dynamic mode)
+columns:
+  - name: timestamp
+    type: datetime
+    aliases:
+      - "Date (America/Costa_Rica)"
+      - "Date"
+      - "Timestamp"
+      - "Time"
+    required: true
+
+  # - name: temperature_indoor
+  # - type: float64
+  # - aliases:
+  #   - "temp_indoor"
+  #   - "indoor_temp"
+
+  # - name: uv_index
+  #   type: float64
+  #   required: false
+  #   available_from: "2025-03"

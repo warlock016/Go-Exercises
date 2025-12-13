@@ -1,59 +1,57 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"strings"
-	"time"
+	"os"
+	"path/filepath"
 )
 
-type WorkResult struct {
-	Output string
-	Error  error
-}
-
-func doWork(s string, milliseconds time.Duration) WorkResult {
-
-	var output strings.Builder
-	result := WorkResult{}
-
-	start := time.Now()
-	output.WriteString(fmt.Sprintf("began work: %s\n", start.Format(time.RFC3339)))
-	time.Sleep(milliseconds)
-	if output.String() == "" {
-		result.Error = fmt.Errorf("invalid work output %s", s)
-	} else {
-		output.WriteString(fmt.Sprintf("finished work. Elapsed time %v ms\n", time.Since(start)))
-	}
-	result.Output = output.String()
-	return result
-}
-
 func main() {
-	results := make(chan WorkResult, 3)
-	params := map[string]time.Duration{"fast": 200 * time.Millisecond, "normal": 400 * time.Millisecond, "slow": 700 * time.Millisecond}
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
-	defer cancel()
+	path := "./"
 
-	for key, dur := range params {
-		go func(key string, dur time.Duration) {
-			results <- doWork(key, dur)
-		}(key, dur)
+	stat, err := os.Stat(path)
+	if err != nil {
+		fmt.Println("Error stating file:", err)
+		return
 	}
-	count := 0
-	for range params {
-		select {
-		case res := <-results:
-			if res.Error != nil {
-				fmt.Printf("Error: %v\n", res.Error)
-			} else {
-				count++
-				fmt.Println(res.Output)
-			}
-		case <-ctx.Done():
-			fmt.Printf("Timeout! Only received %d/%d results\n", count, len(params))
+
+	if stat.IsDir() {
+		fmt.Printf("%s is a directory\n", path)
+
+		files, err := os.ReadDir(path)
+		if err != nil {
+			fmt.Println("Error reading directory:", err)
 			return
 		}
+
+		if len(files) == 0 {
+			fmt.Println("Directory is empty")
+			return
+		}
+
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current working directory:", err)
+			return
+		}
+		for _, file := range files {
+			fmt.Println(filepath.Join(cwd, file.Name()))
+		}
+	} else {
+		fmt.Printf("%s is a file\n", path)
+
+		file, err := os.Open(path)
+		if err != nil {
+			fmt.Println("Error opening file:", err)
+			return
+		}
+		defer file.Close()
+
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current working directory:", err)
+			return
+		}
+		fmt.Printf("%s\n", filepath.Join(cwd, file.Name()))
 	}
-	fmt.Println("All workers completed")
 }

@@ -104,21 +104,36 @@ type Config struct {
 }
 
 type ProviderConfig struct {
-    Name            string         `yaml:"name"`
-    Encoding        string         `yaml:"encoding"`         // "UTF-8", "UTF-16LE"
-    Delimiter       string         `yaml:"delimiter"`        // ";" or ","
-    Comment         string         `yaml:"comment"`          // "#" or ""
-    DatetimeColumn  int            `yaml:"datetime_column"`  // Column index for timestamps
-    DatetimeFormats []string       `yaml:"datetime_formats"` // Go time layouts (tried in order)
-    SkipRows        int            `yaml:"skip_rows"`        // Rows to skip before header
-    Columns         []ColumnConfig `yaml:"columns"`          // Column definitions
+    Name               string         `yaml:"name"`
+    Encoding           string         `yaml:"encoding"`            // "UTF-8", "UTF-16LE"
+    Delimiter          string         `yaml:"delimiter"`           // ";" or ","
+    Comment            string         `yaml:"comment"`             // "#" or ""
+    SkipRows           int            `yaml:"skip_rows"`           // Rows to skip before header
+    ThousandsSeparator string         `yaml:"thousands_separator"` // "," for "1,234.56"
+    SchemaMode         string         `yaml:"schema_mode"`         // "dynamic" or "strict"
+    Datetime           DatetimeConfig `yaml:"datetime"`
+    TypeInference      TypeInference  `yaml:"type_inference"`
+    Columns            []ColumnConfig `yaml:"columns"`             // Optional in dynamic mode
+}
+
+type DatetimeConfig struct {
+    Detection string   `yaml:"detection"` // "name_pattern", "index", "first_column"
+    Patterns  []string `yaml:"patterns"`  // Column name patterns for datetime
+    Index     int      `yaml:"index"`     // Used when detection: index
+    Formats   []string `yaml:"formats"`   // Go time layouts (tried in order)
+}
+
+type TypeInference struct {
+    Default       string   `yaml:"default"`        // Default type for columns
+    StringColumns []string `yaml:"string_columns"` // Patterns to keep as string
 }
 
 type ColumnConfig struct {
-    Index    int    `yaml:"index"`
-    Name     string `yaml:"name"`
-    Type     string `yaml:"type"`     // "datetime", "float64", "string"
-    Required bool   `yaml:"required"` // Fail if missing/empty
+    Name          string   `yaml:"name"`
+    Type          string   `yaml:"type"`           // "datetime", "float64", "string"
+    Required      bool     `yaml:"required"`       // Only enforced in strict mode
+    Aliases       []string `yaml:"aliases"`        // Alternative column names
+    AvailableFrom string   `yaml:"available_from"` // Documentation (e.g., "2025-03")
 }
 ```
 
@@ -238,6 +253,15 @@ func (v *Validator) Validate(path string, cfg *Config) (*RawData, *ProcessingErr
 
 ## Configuration Schema
 
+### Schema Strategy: Dynamic vs Strict
+
+WeatherCloud and similar providers exhibit **schema drift** - columns appear/disappear over time (e.g., UV index sensor added March 2025). The configuration supports two modes:
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `dynamic` (default) | Discover columns from file headers; validate types only | Production - handles schema drift gracefully |
+| `strict` | Require exact column match from config | Testing, validation, known-stable schemas |
+
 ### Provider Configuration File (YAML)
 
 ```yaml
@@ -247,31 +271,69 @@ name: weathercloud
 encoding: UTF-16LE              # File encoding (UTF-8, UTF-16LE, UTF-16BE)
 delimiter: ";"                  # Field separator
 comment: "#"                    # Comment line prefix (empty = none)
-datetime_column: 0              # Index of timestamp column
-datetime_formats:               # Formats to try (first match wins)
-  - "02/01/2006 15:04:05"       # DD/MM/YYYY HH:MM:SS
-  - "2006-01-02 15:04:05"       # YYYY-MM-DD HH:MM:SS (fallback)
 skip_rows: 0                    # Rows to skip before header
 thousands_separator: ","        # For numeric parsing (e.g., "1,234.56")
 
+# Schema handling
+schema_mode: dynamic            # "dynamic" or "strict"
+
+# Datetime detection (applies to both modes)
+datetime:
+  detection: name_pattern       # "name_pattern", "index", or "first_column"
+  patterns:                     # Column name patterns that indicate datetime
+    - "date"
+    - "time"
+    - "timestamp"
+  index: 0                      # Used when detection: index
+  formats:                      # Go time layouts (tried in order)
+    - "02/01/2006 15:04:05"     # DD/MM/YYYY HH:MM:SS
+    - "2006-01-02 15:04:05"     # YYYY-MM-DD HH:MM:SS
+
+# Type inference rules (for dynamic mode)
+type_inference:
+  default: float64              # Default type for non-datetime columns
+  string_columns:               # Column name patterns to keep as string
+    - "name"
+    - "description"
+    - "notes"
+
+# Column definitions (for strict mode, optional hints for dynamic mode)
 columns:
-  - index: 0
-    name: timestamp
+  - name: timestamp             # Match by name (flexible) or index (strict)
     type: datetime
-    required: true
+    required: true              # Only enforced in strict mode
 
-  - index: 1
-    name: temperature_indoor
+  - name: temperature_indoor
+    type: float64
+    aliases:                    # Alternative column names (schema drift support)
+      - "temp_indoor"
+      - "indoor_temp"
+
+  - name: uv_index              # New sensor - may not exist in older files
     type: float64
     required: false
-
-  - index: 2
-    name: humidity_indoor
-    type: float64
-    required: false
-
-  # ... additional columns as needed
+    available_from: "2025-03"   # Documentation only (not enforced)
 ```
+
+### Dynamic Mode Behavior
+
+In `dynamic` mode, the parser:
+
+1. **Reads headers from file** - Column names come from the CSV, not config
+2. **Detects datetime column** - Uses `datetime.detection` strategy
+3. **Infers types** - All non-datetime columns default to `float64` (or configured default)
+4. **Applies aliases** - If a column definition has `aliases`, matches any of them
+5. **Ignores missing columns** - Columns in config but not in file are skipped (warning)
+6. **Accepts extra columns** - Columns in file but not in config are included
+
+### Strict Mode Behavior
+
+In `strict` mode, the parser:
+
+1. **Validates exact schema match** - All `required: true` columns must exist
+2. **Uses column index** - Position matters, not just name
+3. **Rejects extra columns** - Unexpected columns trigger error
+4. **Enforces types** - Type mismatches are fatal
 
 ### Supported Values
 
@@ -279,7 +341,9 @@ columns:
 |-------|---------|
 | `encoding` | `UTF-8`, `UTF-16LE`, `UTF-16BE` |
 | `delimiter` | Any single character: `;`, `,`, `\t` |
+| `schema_mode` | `dynamic`, `strict` |
 | `type` | `datetime`, `float64`, `string` |
+| `datetime.detection` | `name_pattern`, `index`, `first_column` |
 
 ---
 
@@ -392,6 +456,51 @@ No code changes required.
 
 ### Output Stage (Stage 4)
 - `"write error: {details}"` - File write failed (fatal)
+
+---
+
+## Processing Modes (Current & Future)
+
+### Current: Single File Mode
+
+The initial implementation processes one CSV file at a time:
+
+```bash
+csvprocessor -input ./data/november.csv -output ./output/november.json
+```
+
+**Characteristics:**
+- Single input path → single output
+- Schema discovered from file headers
+- Errors/warnings scoped to one file
+
+### Future: Folder Mode (Deferred)
+
+A future enhancement will support processing multiple files sequentially:
+
+```bash
+csvprocessor -input ./data/ -output ./output/ -mode folder
+```
+
+**Planned Characteristics:**
+- Process all matching files in directory
+- Each file parsed independently (schema may vary)
+- Aggregated error report across all files
+- Options for output: merged single file vs. individual files
+
+**Design Considerations for Folder Mode:**
+- **Schema union**: Combine columns from all files (superset schema)
+- **Schema intersection**: Only columns present in ALL files
+- **Per-file output**: Each input file → corresponding output file
+- **Merged output**: All files → single combined output
+
+**Implementation will require:**
+- File discovery (glob patterns, extension filtering)
+- Progress reporting for multi-file operations
+- Partial failure handling (continue on single file error?)
+- Memory management for large folder processing
+
+This is documented for future reference but **not in scope for initial implementation**.
 
 ---
 

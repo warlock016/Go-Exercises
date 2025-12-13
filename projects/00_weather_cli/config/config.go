@@ -45,9 +45,9 @@ func Load() (*Config, error) {
 	return result, nil
 }
 func LoadFromEnvFile(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return fmt.Errorf("failed to find file: %w: %w", apiErrors.ErrMissingConfig, err)
-	}
+	// if _, err := os.Stat(path); os.IsNotExist(err) {
+	// 	return fmt.Errorf("failed to find file: %w: %w", apiErrors.ErrMissingConfig, err)
+	// }
 
 	file, err := os.Open(path)
 	if err != nil {

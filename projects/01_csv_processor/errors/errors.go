@@ -48,6 +48,10 @@ func (e *ProcessingErrors) Error() string {
 	return result.String()
 }
 
+// func (e *ProcessingErrors) Unwarp() error {
+// 	return e.Unwarp()
+// }
+
 // adds error content to current error list
 func (e *ProcessingErrors) Add(stage, msg, value string, ln, col int) {
 	e.Errors = append(e.Errors, FieldError{Stage: stage, Message: msg, Line: ln, Column: col, Value: value})
