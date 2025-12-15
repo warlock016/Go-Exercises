@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/warlock016/csv_processor/config"
@@ -14,13 +13,15 @@ func TestLoadParserConfig(t *testing.T) {
 		ConfigPath   string
 		ResourcePath string
 		Provider     string
-		Mode         string
+		Timezone     string
 		wantErr      bool
 	}{
-		{"single file", "./providers/", "../testdata/Weathercloud Pupuseria El Mirador 2025-01.csv", "weathercloud", "file", false},
-		{"all valid", "./providers/", "../testdata/", "weathercloud", "folder", false},
-		{"invalid resource", "./provid/src", "../testdata/", "weathercloud", "file", true},
-		{"invalid provider", "./providers/", "../testdata/", "meteocontrol", "file", true},
+		{"local tz file", "./providers/", "../testdata/Weathercloud Pupuseria El Mirador 2025-01.csv", "weathercloud", "America/Costa_Rica", false},
+		{"utc tz file", "./providers/", "../testdata/Weathercloud Pupuseria El Mirador 2025-01.csv", "weathercloud", "UTC", false},
+		{"invalid tz file", "./providers/", "../testdata/Weathercloud Pupuseria El Mirador 2025-01.csv", "weathercloud", "", true},
+		{"all valid", "./providers/", "../testdata/", "weathercloud", "America/Costa_Rica", false},
+		{"invalid resource", "./provid/src", "../testdata/", "weathercloud", "America/Costa_Rica", true},
+		{"invalid provider", "./providers/", "../testdata/", "meteocontrol", "America/Costa_Rica", true},
 	}
 
 	for _, tt := range tests {
@@ -29,7 +30,7 @@ func TestLoadParserConfig(t *testing.T) {
 				ResourcePath: tt.ResourcePath,
 				ConfigPath:   tt.ConfigPath,
 				Provider:     tt.Provider,
-				Mode:         tt.Mode,
+				Timezone:     tt.Timezone,
 			}
 
 			res, err := config.NewFileParser(cliInput)
@@ -45,7 +46,9 @@ func TestLoadParserConfig(t *testing.T) {
 				t.Fatalf("unexpected nil result")
 			}
 
-			fmt.Println(res)
+			if res.DateConfig.Timezone.String() != tt.Timezone {
+				t.Fatalf("unexpected timezone, got %s, want %s", res.DateConfig.Timezone.String(), tt.Timezone)
+			}
 		})
 	}
 }

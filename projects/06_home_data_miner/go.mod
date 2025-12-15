@@ -1,4 +1,4 @@
-module github.com/warlock016/projects/06_data_miner
+module github.com/warlock016/projects/data_miner
 
 go 1.25.5
 

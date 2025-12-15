@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	apiErrors "github.com/warlock016/csv_processor/errors"
 	"gopkg.in/yaml.v3"
@@ -14,12 +15,14 @@ type CliConfig struct {
 	ResourcePath string // folder path to csv files
 	ConfigPath   string // folder path to yaml configs
 	Provider     string // provider name should match provider_name in yaml file
+	Timezone     string // optional timezone override
 }
 
 type DateTimeConfig struct {
 	Detection string   `yaml:"detection"`
 	Index     int      `yaml:"index"`
 	Formats   []string `yaml:"formats"` // holds the datetime string layouts (e.g. "2006-01-02 15:04:15")
+	Timezone  *time.Location
 }
 
 type ColumnConfig struct {
@@ -125,6 +128,16 @@ func NewFileParser(input CliConfig) (*ParserConfig, error) {
 	}
 	if len(newConfig.DateConfig.Formats) == 0 {
 		return nil, fmt.Errorf("empty datetime formats in YAML config: %w", apiErrors.ErrInvalidInput)
+	}
+	if input.Timezone == "" {
+		return nil, fmt.Errorf("empty timezone override: %w", apiErrors.ErrInvalidInput)
+	}
+	if input.Timezone != "" {
+		loc, err := time.LoadLocation(input.Timezone)
+		if err != nil {
+			return nil, fmt.Errorf("invalid timezone override: %w", err)
+		}
+		newConfig.DateConfig.Timezone = loc
 	}
 
 	if len(newConfig.ColConfig) == 0 {
