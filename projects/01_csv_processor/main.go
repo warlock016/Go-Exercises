@@ -1,129 +1,73 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"strconv"
+	"log"
 	"strings"
-	"time"
 
-	apiErrors "github.com/warlock016/csv_processor/errors"
+	"github.com/warlock016/csv_processor/config"
+	"github.com/warlock016/csv_processor/parser"
+	"github.com/warlock016/csv_processor/validator"
 )
 
-type Record struct {
-	Time      []time.Time
-	Variables []string
-	Records   map[string][]float64
-}
+func main() {
 
-func parseDatetime(datetime string) (*time.Time, error) {
-	res, err := time.Parse("02/01/2006 15:04:05", datetime)
+	cliConfig := config.CliConfig{}
+	flag.StringVar(&cliConfig.ConfigPath, "config", "./config/providers/", "provide parser config path")
+	flag.StringVar(&cliConfig.ResourcePath, "file", "./testdata/sample.csv", "provide target csv path")
+	flag.StringVar(&cliConfig.Provider, "provider", "weathercloud", "provide the YAML provider name")
+	flag.StringVar(&cliConfig.Timezone, "timezone", "UTC", "set timezone (e.g. Europe/Berlin)")
+	flag.Parse()
+
+	config, err := config.NewFileParser(cliConfig)
 	if err != nil {
-		return nil, fmt.Errorf("invalid timestamp conversion %v", err)
+		log.Fatalf("failed to parse file: %v", err)
 	}
-	return &res, nil
+
+	rawResult, rawErr := validator.ValidateRawFile(config)
+	// if rawErr.HasFatalErrors() || rawErr.HasWarnings() {
+	// 	fmt.Printf("%d errors, %d warnings\n", len(rawErr.Errors), len(rawErr.Warnings))
+	// }
+	if rawResult == nil {
+		log.Fatalf("unexpected nil result for %s\n", cliConfig.ResourcePath)
+	}
+
+	fmt.Println(rawResult.HeaderStats)
+
+	fmt.Println(rawResult.BodyStats)
+
+	fmt.Printf("%s", rawErr.Summary())
+
+	parsed, parseErr := parser.ParseRawData(rawResult)
+	if parseErr.HasFatalErrors() {
+		for _, e := range parseErr.Errors {
+			fmt.Printf("ERR: %s: %s: %s ln: %d col: %d\n", e.Stage, e.Message, e.Stage, e.Line, e.Column)
+		}
+	}
+	if parseErr.HasWarnings() {
+		for _, w := range parseErr.Warnings {
+			fmt.Printf("WRN: %s: %s: %s ln: %d col: %d\n", w.Stage, w.Message, w.Stage, w.Line, w.Column)
+
+		}
+	}
+	if parsed == nil {
+		fmt.Printf("%s", parseErr.Summary())
+		log.Fatal("unexpected nil result\n")
+	}
+
+	// fmt.Println(parsed.Labels)
+	// fmt.Println(parsed.Timezone.String())
+	// fmt.Printf("%s\n", parseErr.Summary())
+
+	for _, k := range parsed.Labels {
+		if k == parsed.Labels[0] && strings.Contains(k, "Date") {
+			continue
+		}
+		if len(parsed.Datapoints[k]) != len(parsed.Time) {
+			fmt.Printf("\"%s\": invalid series length %d\n", k, len(parsed.Datapoints[k]))
+		}
+	}
+	// fmt.Printf("%v\n", parsed.Time)
+	// fmt.Printf("%v\n", parsed.Datapoints)
 }
-
-func parseValue(value string) (float64, error) {
-
-	var cleanedString string
-
-	if value == "" {
-		return 0, fmt.Errorf("invalid input (empty): %w", apiErrors.ErrInvalidInput) //fmt.Errorf("invalid empty input")
-	}
-
-	if strings.Contains(value, ",") {
-		cleanedString = strings.ReplaceAll(value, ",", "")
-	} else {
-		cleanedString = value
-	}
-
-	fmt.Println(cleanedString)
-	res, err := strconv.ParseFloat(cleanedString, 64)
-	if err != nil {
-		return 0, fmt.Errorf("invalid float string conversion %v", err)
-	}
-	return res, nil
-}
-
-// func main() {
-// 	filePath := "./testdata/Weathercloud Pupuseria El Mirador 2025-11.csv"
-// 	file, err := os.Open(filePath)
-// 	if err != nil {
-// 		log.Fatalf("error: %v at path %s", err, filePath)
-// 	}
-// 	defer file.Close()
-// 	// Wrap file in UTF-16 decoder (handles BOM automatically)
-// 	decoder := unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder()
-// 	utf8Reader := transform.NewReader(file, decoder)
-
-// 	csv := csv.NewReader(utf8Reader)
-// 	csv.Comma = ';'
-// 	csv.Comment = '#'
-
-// 	newErr := apiErrors.ProcessingErrors{
-// 		Errors: make([]apiErrors.FieldError, 0),
-// 	}
-
-// 	rawRecord := [][]string{}
-// 	newRecord := Record{
-// 		Time:      make([]time.Time, 0),
-// 		Variables: make([]string, 0),
-// 		Records:   make(map[string][]float64),
-// 	}
-// 	i := 0
-// 	for {
-// 		record, err := csv.Read()
-// 		if err == io.EOF {
-// 			fmt.Println("EOF reached!")
-// 			break
-// 		} else if err != nil {
-// 			newErr.Add(fmt.Sprintf("%v: %d", err, len(record)), i, 0)
-// 		}
-// 		rawRecord = append(rawRecord, record)
-// 		i++
-// 	}
-
-// 	if len(rawRecord) == 0 {
-// 		newErr.Add("csv reader returned empty result", 0, 0)
-// 	}
-// 	for i, v := range rawRecord[0] {
-// 		if len([]rune(v)) == 0 {
-// 			newErr.Add("invalid empty label", 0, i)
-// 		}
-// 		newRecord.Variables = append(newRecord.Variables, v)
-// 	}
-
-// 	body := rawRecord[1:]
-// 	bodyMap := map[int]int{}
-
-// 	for idx, slice := range body {
-// 		bodyMap[len(slice)]++
-
-// 		for jdx, field := range slice {
-// 			switch jdx {
-// 			case 0:
-// 				res, err := parseDatetime(field)
-// 				if err != nil {
-// 					newErr.Add(fmt.Sprintf("invalid timestamp conversion %s", field), idx, jdx)
-// 				} else {
-// 					newRecord.Time = append(newRecord.Time, *res)
-// 				}
-
-// 			default:
-// 				res, err := parseValue(field)
-// 				if err != nil {
-// 					newErr.Add(fmt.Sprintf("invalid value conversion %s, %v at ln: %d, pos: %d", field, err, idx, jdx), idx, jdx)
-// 				} else {
-// 					newRecord.Records[newRecord.Variables[jdx]] = append(newRecord.Records[newRecord.Variables[jdx]], res)
-// 				}
-
-// 			}
-// 		}
-// 	}
-
-// 	if newErr.HasFatalErrors() || newErr.HasWarnings() {
-// 		fmt.Println(newErr.Error())
-// 	}
-
-// 	// fmt.Printf("\nBody Map: %v\n\n", bodyMap)
-// }

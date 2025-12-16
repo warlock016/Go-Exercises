@@ -59,7 +59,7 @@ func TestConvertStringToRune(t *testing.T) {
 func TestValidateRawFile(t *testing.T) {
 	cfg := CreateTestConfig(t)
 
-	cfg, rawData, errs := validator.ValidateRawFile(cfg)
+	rawData, errs := validator.ValidateRawFile(cfg)
 	if len(errs.Errors) > 0 {
 		t.Errorf("Expected no errors, but got: %v", errs.Errors)
 	}

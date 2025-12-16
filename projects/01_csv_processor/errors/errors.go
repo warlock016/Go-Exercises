@@ -15,6 +15,14 @@ var (
 // 1. Missing file (incorrect path or missing file)
 // 2. Empty or malformed file (read error or "")
 // 3.
+// type APIError struct {
+// }
+
+// type HTTP struct {
+// }
+
+// type ParseError struct {
+// }
 
 type FieldError struct {
 	Stage   string
@@ -58,7 +66,19 @@ func (e *ProcessingErrors) AddWarning(stage, msg, value string, ln, col int) {
 }
 
 func (e *ProcessingErrors) Summary() string {
-	return fmt.Sprintf("%d errors, %d warnings", len(e.Errors), len(e.Warnings))
+	var result strings.Builder
+	for _, err := range e.Errors {
+		fmt.Fprintf(&result, "%s: %s: %s ln: %d col: %d\n", err.Stage, err.Message, err.Value, err.Line, err.Column)
+	}
+	for j, wrn := range e.Warnings {
+		if j > 25 {
+			continue
+		}
+		fmt.Fprintf(&result, "%s: %s: %s ln: %d col: %d\n", wrn.Stage, wrn.Message, wrn.Value, wrn.Line, wrn.Column)
+	}
+	fmt.Fprintf(&result, "%d errors, %d warnings\n", len(e.Errors), len(e.Warnings))
+
+	return result.String()
 }
 
 // checks if there are any errors in the list

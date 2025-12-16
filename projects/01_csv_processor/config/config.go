@@ -44,23 +44,26 @@ type ParserConfig struct {
 	DateConfig     DateTimeConfig `yaml:"datetime"`            // mandatory
 	ColConfig      []ColumnConfig `yaml:"columns"`             // mandatory
 	ResourcePath   string         // file/folder path, based on value of ParserMode
+	ConfigPath     string
+	Provider       string
+	Timezone       string
 }
 
-func NewFileParser(input CliConfig) (*ParserConfig, error) {
+func NewFileParser(cli CliConfig) (*ParserConfig, error) {
 
 	// CLI flag arguments
-	if input.ConfigPath == "" {
+	if cli.ConfigPath == "" {
 		return nil, fmt.Errorf("empty YAML config path: %w", apiErrors.ErrInvalidInput)
 	}
-	if input.ResourcePath == "" {
+	if cli.ResourcePath == "" {
 		return nil, fmt.Errorf("empty resource path: %w", apiErrors.ErrInvalidInput)
 	}
-	if input.Provider == "" {
+	if cli.Provider == "" {
 		return nil, fmt.Errorf("empty provider name: %w", apiErrors.ErrInvalidInput)
 	}
 
 	// Validate YAML config directory
-	configDir, err := os.ReadDir(input.ConfigPath)
+	configDir, err := os.ReadDir(cli.ConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read YAML config directory: %w", err)
 	}
@@ -69,14 +72,17 @@ func NewFileParser(input CliConfig) (*ParserConfig, error) {
 	}
 
 	newConfig := ParserConfig{
-		ResourcePath: input.ResourcePath,
+		ResourcePath: cli.ResourcePath,
+		ConfigPath:   cli.ConfigPath,
+		Provider:     cli.Provider,
+		Timezone:     cli.Timezone,
 	}
 
 	// Find and read target YAML config file
 	found := false
 	for _, file := range configDir {
 		if !file.IsDir() {
-			target := filepath.Join(input.ConfigPath, file.Name())
+			target := filepath.Join(cli.ConfigPath, file.Name())
 			f, err := os.Open(target)
 			if err != nil {
 				return nil, fmt.Errorf("%s not found: %w", target, err)
@@ -93,7 +99,7 @@ func NewFileParser(input CliConfig) (*ParserConfig, error) {
 				return nil, fmt.Errorf("failed to unmarshal YAML: %s %w", target, err)
 			}
 
-			if newConfig.Name == input.Provider {
+			if newConfig.Name == cli.Provider {
 				found = true
 				break
 			}
@@ -129,11 +135,11 @@ func NewFileParser(input CliConfig) (*ParserConfig, error) {
 	if len(newConfig.DateConfig.Formats) == 0 {
 		return nil, fmt.Errorf("empty datetime formats in YAML config: %w", apiErrors.ErrInvalidInput)
 	}
-	if input.Timezone == "" {
+	if cli.Timezone == "" {
 		return nil, fmt.Errorf("empty timezone override: %w", apiErrors.ErrInvalidInput)
 	}
-	if input.Timezone != "" {
-		loc, err := time.LoadLocation(input.Timezone)
+	if cli.Timezone != "" {
+		loc, err := time.LoadLocation(cli.Timezone)
 		if err != nil {
 			return nil, fmt.Errorf("invalid timezone override: %w", err)
 		}

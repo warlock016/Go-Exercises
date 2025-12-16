@@ -1,19 +1,10 @@
 package formatter
 
-// import (
-// 	"strings"
+import (
+	"github.com/warlock016/csv_processor/errors"
+	apiTypes "github.com/warlock016/csv_processor/types"
+)
 
-// 	apiErrors "github.com/warlock016/csv_processor/errors"
-// 	"github.com/warlock016/csv_processor/types"
-// )
-
-// func FormatData(data *types.ParsedData) (*types.FormattedOutput, *apiErrors.ProcessingErrors) {
-
-// 	result := types.FormattedOutput{}
-// 	errors := apiErrors.ProcessingErrors{}
-
-// 	// if data.
-// 	var acc strings.Builder
-
-// 	return &result, &errors
-// }
+func FormatData(data *apiTypes.ParsedData, format string) (*apiTypes.FormattedOutput, *errors.ProcessingErrors) {
+	return nil, nil
+}
