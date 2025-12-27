@@ -5,6 +5,36 @@ import (
 	"fmt"
 )
 
+// HTTPError is a custom error type with status code
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
+}
+
+// TemporaryError is an error that indicates a transient failure
+type TemporaryError struct {
+	Err error
+}
+
+func (e *TemporaryError) Error() string {
+	return fmt.Sprintf("temporary: %v", e.Err)
+}
+func (e *TemporaryError) Unwrap() error {
+	return e.Err
+}
+func (e *TemporaryError) Temporary() bool {
+	return true
+}
+
+// Sentinel errors for testing
+var ErrNotFound = errors.New("not found")
+var ErrTimeout = errors.New("timeout")
+var ErrPermission = errors.New("permission denied")
+
 // CheckErrorType inspects an error and returns what type it is
 func CheckErrorType(err error) string {
 	// TODO(human): Implement

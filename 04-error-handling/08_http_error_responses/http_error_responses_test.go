@@ -8,10 +8,6 @@ import (
 	"testing"
 )
 
-var ErrNotFound = errors.New("not found")
-var ErrUnauthorized = errors.New("unauthorized")
-var ErrInvalidInput = errors.New("invalid input")
-
 func TestErrorToStatusCode(t *testing.T) {
 	tests := []struct {
 		name string
@@ -96,9 +92,9 @@ func TestNewErrorResponse(t *testing.T) {
 
 func TestWriteErrorResponse(t *testing.T) {
 	tests := []struct {
-		name           string
-		err            error
-		wantContains   []string
+		name         string
+		err          error
+		wantContains []string
 	}{
 		{
 			"not found",

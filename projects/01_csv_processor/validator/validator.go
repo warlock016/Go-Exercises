@@ -39,7 +39,7 @@ func ParseStats(stat map[int]int) (int, error) {
 	return refKey, nil
 }
 
-func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, apiErrors.ProcessingErrors) {
+func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, *apiErrors.ProcessingErrors) {
 
 	result := types.RawData{
 		Header:          make([][]string, 0, cfg.HeaderRows),
@@ -62,8 +62,8 @@ func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, apiErrors.Proces
 
 	file, err := os.Open(cfg.ResourcePath)
 	if err != nil {
-		newErrs.AddError("file open", "unable to open file", cfg.ResourcePath, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: file open", "unable to open file", cfg.ResourcePath, 0, 0)
+		return nil, &newErrs
 	}
 	defer file.Close()
 
@@ -78,8 +78,8 @@ func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, apiErrors.Proces
 		decoder := unicode.UTF16(unicode.BigEndian, unicode.UseBOM).NewDecoder()
 		reader = transform.NewReader(file, decoder)
 	default:
-		newErrs.AddError("file encoding", "unsupported file encoding", cfg.Encoding, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: file encoding", "unsupported file encoding", cfg.Encoding, 0, 0)
+		return nil, &newErrs
 	}
 	csvReader := csv.NewReader(reader)
 	csvReader.FieldsPerRecord = -1
@@ -98,7 +98,7 @@ func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, apiErrors.Proces
 			break
 		}
 		if err != nil {
-			newErrs.AddWarning("csv parsing", "problematic record", cfg.ResourcePath, rowIdx, 0)
+			newErrs.AddWarning("WRN: csv parsing", "problematic record", cfg.ResourcePath, rowIdx, 0)
 		}
 
 		// if true, then skip the row
@@ -121,38 +121,38 @@ func ValidateRawFile(cfg *config.ParserConfig) (*types.RawData, apiErrors.Proces
 	}
 
 	if len(result.Header) == 0 {
-		newErrs.AddError("header validation", "no header rows found", cfg.ResourcePath, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: header validation", "no header rows found", cfg.ResourcePath, 0, 0)
+		return nil, &newErrs
 	}
 	headerStats, err := ParseStats(result.HeaderStats)
 	if err != nil {
-		newErrs.AddError("header stats validation", "unexpected empty stats map", cfg.ResourcePath, 0, 0)
+		newErrs.AddError("ERR: header stats validation", "unexpected empty stats map", cfg.ResourcePath, 0, 0)
 	}
 	result.HeaderWidth = headerStats
 	if len(result.HeaderStats) == 0 || result.HeaderWidth == 0 {
-		newErrs.AddError("header stats validation", "empty header stats map", cfg.ResourcePath, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: header stats validation", "empty header stats map", cfg.ResourcePath, 0, 0)
+		return nil, &newErrs
 	}
 	if len(result.HeaderStats) > 1 {
-		newErrs.AddWarning("header structure validation", "inconsistent header lengths", cfg.ResourcePath, 0, 0)
+		newErrs.AddWarning("WRN: header structure validation", "inconsistent header lengths", cfg.ResourcePath, 0, 0)
 	}
 
 	if len(result.Body) == 0 {
-		newErrs.AddError("body validation", "no body rows found", cfg.ResourcePath, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: body validation", "no body rows found", cfg.ResourcePath, 0, 0)
+		return nil, &newErrs
 	}
 	bodyStats, err := ParseStats(result.BodyStats)
 	if err != nil {
-		newErrs.AddError("header stats validation", "unexpected empty stats map", cfg.ResourcePath, 0, 0)
+		newErrs.AddError("ERR: header stats validation", "unexpected empty stats map", cfg.ResourcePath, 0, 0)
 	}
 	result.BodyWidth = bodyStats
 	if len(result.BodyStats) == 0 || result.BodyWidth == 0 {
-		newErrs.AddError("body stats validation", "empty body stats map", cfg.ResourcePath, 0, 0)
-		return nil, newErrs
+		newErrs.AddError("ERR: body stats validation", "empty body stats map", cfg.ResourcePath, 0, 0)
+		return nil, &newErrs
 	}
 	if len(result.BodyStats) > 1 {
-		newErrs.AddWarning("body structure validation", "inconsistent body lengths", cfg.ResourcePath, 0, 0)
+		newErrs.AddWarning("WRN: body structure validation", "inconsistent body lengths", cfg.ResourcePath, 0, 0)
 	}
 
-	return &result, newErrs
+	return &result, &newErrs
 }

@@ -6,38 +6,6 @@ import (
 	"testing"
 )
 
-// Sentinel errors for testing
-var ErrNotFound = errors.New("not found")
-var ErrTimeout = errors.New("timeout")
-var ErrPermission = errors.New("permission denied")
-
-// HTTPError is a custom error type with status code
-type HTTPError struct {
-	StatusCode int
-	Message    string
-}
-
-func (e *HTTPError) Error() string {
-	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
-}
-
-// TemporaryError is an error that indicates a transient failure
-type TemporaryError struct {
-	Err error
-}
-
-func (e *TemporaryError) Error() string {
-	return fmt.Sprintf("temporary: %v", e.Err)
-}
-
-func (e *TemporaryError) Temporary() bool {
-	return true
-}
-
-func (e *TemporaryError) Unwrap() error {
-	return e.Err
-}
-
 func TestCheckErrorType(t *testing.T) {
 	tests := []struct {
 		name string
@@ -66,10 +34,10 @@ func TestCheckErrorType(t *testing.T) {
 
 func TestExtractHTTPStatus(t *testing.T) {
 	tests := []struct {
-		name       string
-		err        error
-		wantCode   int
-		wantFound  bool
+		name      string
+		err       error
+		wantCode  int
+		wantFound bool
 	}{
 		{
 			name:      "direct HTTPError 404",

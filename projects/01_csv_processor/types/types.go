@@ -2,19 +2,10 @@ package types
 
 import (
 	"time"
+
+	"github.com/warlock016/csv_processor/errors"
 )
 
-// type Reading struct {
-// 	Timestamp time.Time // Ideally converted datetime string + timezone to Unix
-// 	Value     float64
-// }
-
-// type Metadata struct {
-// 	Timestamp time.Time
-// 	Value     string
-// }
-
-// Shared Data Structures
 type RawData struct {
 	Header      [][]string
 	HeaderStats map[int]int
@@ -32,15 +23,37 @@ type RawData struct {
 }
 
 type ParsedData struct {
-	Time        []time.Time          // timestamps
-	Timezone    *time.Location       // time series timezone
-	Labels      []string             // time series names
-	Datapoints  map[string][]float64 // numeric time series
-	Metadata    map[string][]string  // string time series
-	SkippedCols map[int]bool
+	Time       []time.Time          // timestamps
+	Timezone   *time.Location       // time series timezone
+	Labels     []string             // time series names
+	Datapoints map[string][]float64 // numeric time series
+	Metadata   map[string][]string  // string time series
+	// SkippedCols   map[int]bool
+	LabelColIndex map[int]int
+	Source        string
 }
 
 type FormattedOutput struct {
 	Content string
 	Type    string
+}
+
+type JsonData struct {
+	Source     string      `json:"source"`
+	Timezone   string      `json:"timezone"`
+	Count      int         `json:"count"`
+	Time       []string    `json:"time,omitempty"`
+	Labels     []string    `json:"labels,omitempty"`
+	Records    []RowRecord `json:"records,omitempty"`
+	Datapoints ColRecord   `json:"datapoints,omitempty"`
+}
+
+type RowRecord map[string]any // any could be string or float (json.RawMessage)
+
+type ColRecord map[string][]any
+
+type PipelineResult struct {
+	Output *FormattedOutput
+	Errors *errors.ProcessingErrors
+	Source string
 }

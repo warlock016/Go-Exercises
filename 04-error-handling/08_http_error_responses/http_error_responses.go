@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+var ErrNotFound = errors.New("not found")
+var ErrUnauthorized = errors.New("unauthorized")
+var ErrInvalidInput = errors.New("invalid input")
+
 // ErrorToStatusCode maps errors to HTTP status codes
 func ErrorToStatusCode(err error) int {
 	// TODO(human): Implement

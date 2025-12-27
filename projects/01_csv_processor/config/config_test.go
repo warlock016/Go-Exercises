@@ -36,11 +36,11 @@ func TestLoadParserConfig(t *testing.T) {
 			res, err := config.NewFileParser(cliInput)
 
 			switch {
-			case tt.wantErr && err != nil:
+			case tt.wantErr && err.HasFatalErrors():
 				return
-			case tt.wantErr && err == nil:
+			case tt.wantErr && !err.HasFatalErrors():
 				t.Fatal("unexpected nil error, want err")
-			case !tt.wantErr && err != nil:
+			case !tt.wantErr && err.HasFatalErrors():
 				t.Fatalf("unexpected error: %v", err)
 			case !tt.wantErr && res == nil:
 				t.Fatalf("unexpected nil result")

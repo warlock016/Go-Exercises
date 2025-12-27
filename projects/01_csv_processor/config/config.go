@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,6 +15,8 @@ type CliConfig struct {
 	ConfigPath   string // folder path to yaml configs
 	Provider     string // provider name should match provider_name in yaml file
 	Timezone     string // optional timezone override
+	Inputformat  string // input format file definition
+	OutputFormat string // output format for local output dumping
 }
 
 type DateTimeConfig struct {
@@ -49,26 +50,40 @@ type ParserConfig struct {
 	Timezone       string
 }
 
-func NewFileParser(cli CliConfig) (*ParserConfig, error) {
+func NewFileParser(cli CliConfig) (*ParserConfig, *apiErrors.ProcessingErrors) {
 
-	// CLI flag arguments
+	resultErr := apiErrors.ProcessingErrors{
+		Errors:   make([]apiErrors.FieldError, 0, 4),
+		Warnings: make([]apiErrors.FieldError, 0, 4),
+	}
+
+	// Validate CLI flag arguments
 	if cli.ConfigPath == "" {
-		return nil, fmt.Errorf("empty YAML config path: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid input", "empty config path", 0, 0)
+		return nil, &resultErr
 	}
 	if cli.ResourcePath == "" {
-		return nil, fmt.Errorf("empty resource path: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid input", "empty resource path", 0, 0)
+		return nil, &resultErr
 	}
 	if cli.Provider == "" {
-		return nil, fmt.Errorf("empty provider name: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid input", "empty provider", 0, 0)
+		return nil, &resultErr
+	}
+	if cli.Timezone == "" {
+		resultErr.AddError("ERR: config", "invalid input", "empty timezone", 0, 0)
+		return nil, &resultErr
 	}
 
 	// Validate YAML config directory
 	configDir, err := os.ReadDir(cli.ConfigPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read YAML config directory: %w", err)
+		resultErr.AddError("ERR: config", "invalid directory", cli.ConfigPath, 0, 0)
+		return nil, &resultErr
 	}
 	if len(configDir) == 0 {
-		return nil, fmt.Errorf("empty YAML config directory: %w", apiErrors.ErrNotFound)
+		resultErr.AddError("ERR: config", "empty directory", cli.ConfigPath, 0, 0)
+		return nil, &resultErr
 	}
 
 	newConfig := ParserConfig{
@@ -85,18 +100,21 @@ func NewFileParser(cli CliConfig) (*ParserConfig, error) {
 			target := filepath.Join(cli.ConfigPath, file.Name())
 			f, err := os.Open(target)
 			if err != nil {
-				return nil, fmt.Errorf("%s not found: %w", target, err)
+				resultErr.AddError("ERR: config", "invalid file", err.Error(), 0, 0)
+				return nil, &resultErr
 			}
 			defer f.Close()
 
 			res, err := io.ReadAll(f)
 			if err != nil {
-				return nil, fmt.Errorf("failed to read %s: %w", target, err)
+				resultErr.AddError("ERR: config", "invalid file", err.Error(), 0, 0)
+				return nil, &resultErr
 			}
 
 			err = yaml.Unmarshal(res, &newConfig)
 			if err != nil {
-				return nil, fmt.Errorf("failed to unmarshal YAML: %s %w", target, err)
+				resultErr.AddError("ERR: config", "invalid file", err.Error(), 0, 0)
+				return nil, &resultErr
 			}
 
 			if newConfig.Name == cli.Provider {
@@ -106,53 +124,64 @@ func NewFileParser(cli CliConfig) (*ParserConfig, error) {
 		}
 	}
 	if !found {
-		return nil, fmt.Errorf("YAML config not found: %w", apiErrors.ErrNotFound)
+		resultErr.AddError("ERR: config", "missing config", cli.ConfigPath, 0, 0)
+		return nil, &resultErr
 	}
 
 	// now we need to validate mandatory fields in newConfig
 	if newConfig.Name == "" {
-		return nil, fmt.Errorf("unexpected empty provider name in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid name", 0, 0)
+		return nil, &resultErr
 	}
 	if newConfig.Encoding == "" {
-		return nil, fmt.Errorf("empty encoding in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid encoding", 0, 0)
+		return nil, &resultErr
 	}
 	if newConfig.Delimiter == "" {
-		return nil, fmt.Errorf("empty delimiter in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid delimiter", 0, 0)
+		return nil, &resultErr
 	}
 	if newConfig.HeaderRows < 0 {
-		return nil, fmt.Errorf("invalid header rows in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "negative header count", 0, 0)
+		return nil, &resultErr
 	}
 	if newConfig.SkipRows < 0 {
-		return nil, fmt.Errorf("invalid skip rows in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "negative skiprow count", 0, 0)
+		return nil, &resultErr
 	}
 
 	if newConfig.DateConfig.Detection == "" {
-		return nil, fmt.Errorf("empty datetime detection in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid datetime detection strategy", 0, 0)
+		return nil, &resultErr
 	}
 	if newConfig.DateConfig.Index < 0 {
-		return nil, fmt.Errorf("invalid datetime index in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid datetime col index", 0, 0)
+		return nil, &resultErr
 	}
 	if len(newConfig.DateConfig.Formats) == 0 {
-		return nil, fmt.Errorf("empty datetime formats in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "missing datetime layouts", 0, 0)
+		return nil, &resultErr
 	}
 	if cli.Timezone == "" {
-		return nil, fmt.Errorf("empty timezone override: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid timezone", 0, 0)
+		return nil, &resultErr
 	}
-	if cli.Timezone != "" {
-		loc, err := time.LoadLocation(cli.Timezone)
-		if err != nil {
-			return nil, fmt.Errorf("invalid timezone override: %w", err)
-		}
-		newConfig.DateConfig.Timezone = loc
+	loc, err := time.LoadLocation(cli.Timezone)
+	if err != nil {
+		resultErr.AddError("ERR: config", "invalid config", "invalid timezone", 0, 0)
+		return nil, &resultErr
 	}
+	newConfig.DateConfig.Timezone = loc
 
 	if len(newConfig.ColConfig) == 0 {
-		return nil, fmt.Errorf("empty columns configuration in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid column config", 0, 0)
+		return nil, &resultErr
 	}
 
 	if newConfig.ResourcePath == "" {
-		return nil, fmt.Errorf("unexpected empty resource path in YAML config: %w", apiErrors.ErrInvalidInput)
+		resultErr.AddError("ERR: config", "invalid config", "invalid resource path", 0, 0)
+		return nil, &resultErr
 	}
 
-	return &newConfig, nil
+	return &newConfig, &resultErr
 }

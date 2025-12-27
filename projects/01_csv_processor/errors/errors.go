@@ -44,15 +44,36 @@ func (e *ProcessingErrors) Error() string {
 	if len(e.Errors) != 0 {
 		result.WriteString("Fatal Errors:\n")
 		for _, v := range e.Errors {
-			result.WriteString("{" + v.Stage + "}: {" + v.Message + "}: {" + fmt.Sprint(v.Line) + ":" + fmt.Sprint(v.Column) + v.Value + "}\n")
+			fmt.Fprintf(&result, "ERR: %s: %s: %s ln: %d col: %d\n", v.Stage, v.Message, v.Value, v.Line, v.Column)
 		}
 	}
+	return result.String()
+}
+
+// returns content of all errors as string: message, line & position
+func (e *ProcessingErrors) Warning() string {
+	var result strings.Builder
+
 	if len(e.Warnings) != 0 {
 		result.WriteString("Warnings\n")
 		for _, v := range e.Warnings {
-			result.WriteString("{" + v.Stage + "}: {" + v.Message + "}: {" + fmt.Sprint(v.Line) + ":" + fmt.Sprint(v.Column) + v.Value + "}\n")
+			fmt.Fprintf(&result, "WRN: %s: %s: %s ln: %d col: %d\n", v.Stage, v.Message, v.Value, v.Line, v.Column)
 		}
 	}
+	return result.String()
+}
+
+func (e *ProcessingErrors) Summary() string {
+	var result strings.Builder
+
+	if e.HasFatalErrors() {
+		result.WriteString(e.Error())
+	}
+	if e.HasWarnings() {
+		result.WriteString(e.Warning())
+	}
+	fmt.Fprintf(&result, "\n%d errors, %d warnings\n", len(e.Errors), len(e.Warnings))
+
 	return result.String()
 }
 
@@ -63,22 +84,6 @@ func (e *ProcessingErrors) AddError(stage, msg, value string, ln, col int) {
 
 func (e *ProcessingErrors) AddWarning(stage, msg, value string, ln, col int) {
 	e.Warnings = append(e.Warnings, FieldError{Stage: stage, Message: msg, Line: ln, Column: col, Value: value})
-}
-
-func (e *ProcessingErrors) Summary() string {
-	var result strings.Builder
-	for _, err := range e.Errors {
-		fmt.Fprintf(&result, "%s: %s: %s ln: %d col: %d\n", err.Stage, err.Message, err.Value, err.Line, err.Column)
-	}
-	for j, wrn := range e.Warnings {
-		if j > 25 {
-			continue
-		}
-		fmt.Fprintf(&result, "%s: %s: %s ln: %d col: %d\n", wrn.Stage, wrn.Message, wrn.Value, wrn.Line, wrn.Column)
-	}
-	fmt.Fprintf(&result, "%d errors, %d warnings\n", len(e.Errors), len(e.Warnings))
-
-	return result.String()
 }
 
 // checks if there are any errors in the list

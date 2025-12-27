@@ -5,46 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/warlock016/csv_processor/config"
 	"github.com/warlock016/csv_processor/parser"
 	"github.com/warlock016/csv_processor/types"
 )
-
-func setupTestParserConfig(t *testing.T) *config.ParserConfig {
-	t.Helper()
-	tz, err := time.LoadLocation("America/Costa_Rica")
-	if err != nil {
-		t.Fatalf("failed to parse location: %v", err)
-	}
-	return &config.ParserConfig{
-		Name:       "Test Provider",
-		Encoding:   "utf-8",
-		Delimiter:  ",",
-		SkipRows:   0,
-		HeaderRows: 2,
-		DateConfig: config.DateTimeConfig{
-			Detection: "index",
-			Index:     0,
-			Formats:   []string{"2006-01-02 15:04:05"},
-			Timezone:  tz,
-		},
-		ColConfig: []config.ColumnConfig{
-			{
-				Name:     "Timestamp",
-				Type:     "datetime",
-				Aliases:  []string{"Date", "Time"},
-				Required: true,
-			},
-			{
-				Name:     "Value",
-				Type:     "float",
-				Aliases:  []string{"Measurement"},
-				Required: true,
-			},
-		},
-		ResourcePath: "test_data/test_file.csv",
-	}
-}
 
 func setupTestRawData(t *testing.T) *types.RawData {
 	t.Helper()
@@ -79,9 +42,7 @@ func setupTestRawData(t *testing.T) *types.RawData {
 }
 
 func TestParseRawData(t *testing.T) {
-	// cfg := setupTestParserConfig(t)
 	raw := setupTestRawData(t)
-
 	parsedData, procErrors := parser.ParseRawData(raw)
 
 	if procErrors.HasFatalErrors() {
