@@ -103,9 +103,13 @@ func TestCopyData(t *testing.T) {
 	// Note: CopyData signature expects (from Reader, to Creator)
 	// For this test, we need a specific key to copy
 	// This assumes CopyData copies a specific key - adjust based on implementation
-	err := CopyData(source, dest)
+	err := CopyData(source, dest, "key1")
 	if err != nil {
 		t.Errorf("CopyData() error = %v", err)
+	}
+
+	if _, ok := dest.data["key1"]; !ok {
+		t.Errorf("failed to copy %s to destination", "key1")
 	}
 }
 
@@ -147,35 +151,40 @@ func TestInterfaceSegregation(t *testing.T) {
 	t.Log("✓ MemoryStore implements all CRUD interfaces")
 }
 
+// Helper types for TestFunctionsAcceptMinimalInterfaces
+// These demonstrate interface segregation - each implements only what it needs
+
+type OnlyReader struct {
+	data map[string]string
+}
+
+func (r *OnlyReader) Read(id string) (string, error) {
+	val, ok := r.data[id]
+	if !ok {
+		return "", errors.New("not found")
+	}
+	return val, nil
+}
+
+type OnlyLister struct {
+	keys []string
+}
+
+func (l *OnlyLister) List() []string {
+	return l.keys
+}
+
+type OnlyCreator struct {
+	data map[string]string
+}
+
+func (c *OnlyCreator) Create(id string, value string) error {
+	c.data[id] = value
+	return nil
+}
+
 func TestFunctionsAcceptMinimalInterfaces(t *testing.T) {
 	// This test demonstrates that functions accept minimal interfaces
-
-	type OnlyReader struct {
-		data map[string]string
-	}
-	func (r *OnlyReader) Read(id string) (string, error) {
-		val, ok := r.data[id]
-		if !ok {
-			return "", errors.New("not found")
-		}
-		return val, nil
-	}
-
-	type OnlyLister struct {
-		keys []string
-	}
-	func (l *OnlyLister) List() []string {
-		return l.keys
-	}
-
-	type OnlyCreator struct {
-		data map[string]string
-	}
-	func (c *OnlyCreator) Create(id string, value string) error {
-		c.data[id] = value
-		return nil
-	}
-
 	// These types don't implement full CRUD, but work with segregated functions
 	reader := &OnlyReader{data: map[string]string{"key1": "value1"}}
 	lister := &OnlyLister{keys: []string{"key1"}}

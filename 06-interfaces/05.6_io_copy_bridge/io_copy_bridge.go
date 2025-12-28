@@ -2,6 +2,7 @@ package io_copy_bridge
 
 import (
 	"io"
+	"strings"
 )
 
 // ProcessingStats tracks bytes processed during copy operations
@@ -50,47 +51,90 @@ type LimitReader struct {
 // Write implements io.Writer for ProgressWriter
 func (w *ProgressWriter) Write(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	n, err = w.Writer.Write(p)
+	w.written += int64(n)
+	w.OnProgress(w.written)
+	return n, err
 }
 
 // Read implements io.Reader for CountingReader
 func (r *CountingReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	n, err = r.Reader.Read(p)
+	r.BytesRead += n
+	return n, err
 }
 
 // Write implements io.Writer for CountingWriter
 func (w *CountingWriter) Write(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	n, err = w.Writer.Write(p)
+	w.BytesWritten += n
+	return n, err
 }
 
 // Read implements io.Reader for UppercaseReader
 func (r *UppercaseReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	n, err = r.Reader.Read(p)
+	upper := strings.ToUpper(string(p[:n]))
+	copy(p, []byte(upper))
+	return len([]byte(upper)), err
 }
 
 // Read implements io.Reader for LimitReader
 func (r *LimitReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	remaining := r.Limit - r.read
+	if remaining <= 0 {
+		return 0, io.EOF
+	}
+	limit := min(remaining, len(p))
+	n, err = r.Reader.Read(p[:limit])
+	r.read += n
+	return n, err
 }
 
 // CopyWithStats copies from src to dst and returns statistics
 func CopyWithStats(dst io.Writer, src io.Reader) (*ProcessingStats, error) {
 	// TODO(human): Implement
-	return nil, nil
+
+	wr, err := io.Copy(dst, src)
+	return &ProcessingStats{
+		BytesRead:    wr,
+		BytesWritten: wr,
+	}, err
 }
 
 // ProcessData copies with optional transformations (uppercase, limit)
 func ProcessData(dst io.Writer, src io.Reader, opts ProcessOptions) (*ProcessingStats, error) {
 	// TODO(human): Implement
-	return nil, nil
+
+	var pipeline io.Reader = src
+
+	if opts.Uppercase {
+		pipeline = &UppercaseReader{Reader: pipeline}
+	}
+
+	countingReader := &CountingReader{Reader: pipeline}
+	pipeline = countingReader
+	// pipeline = &CountingReader{Reader: pipeline}
+
+	if opts.Limit > 0 {
+		pipeline = &LimitReader{Reader: pipeline, Limit: opts.Limit}
+	}
+
+	countingWriter := &CountingWriter{Writer: dst}
+	_, err := io.Copy(countingWriter, pipeline)
+
+	return &ProcessingStats{
+		BytesRead:    int64(countingReader.BytesRead),
+		BytesWritten: int64(countingWriter.BytesWritten),
+	}, err
 }
 
 // CopyN copies exactly n bytes from src to dst
 func CopyN(dst io.Writer, src io.Reader, n int64) (int64, error) {
 	// TODO(human): Implement
-	return 0, nil
+	return io.CopyN(dst, src, n)
 }

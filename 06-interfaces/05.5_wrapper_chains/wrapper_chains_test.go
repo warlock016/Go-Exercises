@@ -51,14 +51,20 @@ func TestUppercaseReaderMultipleReads(t *testing.T) {
 
 	// Second read
 	n, err = upper.Read(buf)
-	if n != 5 || string(buf[:n]) != " WORL" {
+	if n != 5 || string(buf[:n]) != " WORL" || err != nil {
 		t.Errorf("Second read: n=%d, data=%q, err=%v", n, string(buf[:n]), err)
 	}
 
-	// Third read
+	// Third read - gets last byte (strings.Reader may or may not return EOF here)
 	n, err = upper.Read(buf)
-	if n != 1 || string(buf[:n]) != "D" || err != io.EOF {
+	if n != 1 || string(buf[:n]) != "D" {
 		t.Errorf("Third read: n=%d, data=%q, err=%v", n, string(buf[:n]), err)
+	}
+
+	// Fourth read - should definitely be EOF now
+	n, err = upper.Read(buf)
+	if n != 0 || err != io.EOF {
+		t.Errorf("Fourth read: n=%d, err=%v, want n=0, err=io.EOF", n, err)
 	}
 }
 

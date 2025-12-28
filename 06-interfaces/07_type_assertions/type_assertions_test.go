@@ -51,6 +51,50 @@ func TestRectangleArea(t *testing.T) {
 	}
 }
 
+func TestCirclePerimeter(t *testing.T) {
+	tests := []struct {
+		name   string
+		circle Circle
+		want   float64
+	}{
+		{"Radius 0", Circle{Radius: 0}, math.Pi * 2 * 0},
+		{"Radius 1", Circle{Radius: 1}, math.Pi * 2 * 1},
+		{"Radius 5", Circle{Radius: 5}, math.Pi * 2 * 5},
+		{"Radius 10", Circle{Radius: 10}, math.Pi * 2 * 10},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.circle.Perimeter()
+			if math.Abs(got-tt.want) > epsilon {
+				t.Errorf("Circle.Perimeter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRectanglePerimeter(t *testing.T) {
+	tests := []struct {
+		name string
+		rect Rectangle
+		want float64
+	}{
+		{"3x4", Rectangle{Width: 3, Height: 4}, 2 * (3 + 4)},
+		{"5x5", Rectangle{Width: 5, Height: 5}, 2 * (5 + 5)},
+		{"1x10", Rectangle{Width: 1, Height: 10}, 2 * (1 + 10)},
+		{"0x5", Rectangle{Width: 0, Height: 5}, 2 * (0 + 5)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.rect.Perimeter()
+			if math.Abs(got-tt.want) > epsilon {
+				t.Errorf("Circle.Perimeter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDiameter(t *testing.T) {
 	tests := []struct {
 		name  string

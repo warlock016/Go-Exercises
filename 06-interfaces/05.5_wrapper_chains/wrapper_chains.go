@@ -37,8 +37,10 @@ type Stats struct {
 // Read implements io.Reader for UppercaseReader
 func (r *UppercaseReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	upper := strings.ToUpper(string(p))
-	return r.Reader.Read([]byte(upper))
+	n, err = r.Reader.Read(p)
+	upper := strings.ToUpper(string(p[:n]))
+	copy(p, []byte(upper))
+	return len([]byte(upper)), err
 }
 
 // Read implements io.Reader for LimitReader
@@ -46,26 +48,53 @@ func (r *LimitReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
 	remaining := r.Limit - r.read
 	if remaining <= 0 {
-		return 0, io.ErrShortBuffer
+		return 0, io.EOF
 	}
-
-	return r.Reader.Read(p[:remaining])
+	limit := min(len(p), remaining)
+	n, err = r.Reader.Read(p[:limit])
+	r.read += n
+	return n, err
 }
 
 // Read implements io.Reader for TeeReader
 func (r *TeeReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return r.Reader.Read(p)
+	n, err = r.Reader.Read(p)
+
+	if n > 0 {
+		r.Writer.Write(p[:n])
+	}
+	return n, err
 }
 
 // Read implements io.Reader for CountingReader
 func (r *CountingReader) Read(p []byte) (n int, err error) {
 	// TODO(human): Implement
-	return 0, nil
+	n, err = r.Reader.Read(p)
+	r.BytesRead += n
+	return n, err
 }
 
 // BuildPipeline creates a chained Reader: source → uppercase → count → limit
 func BuildPipeline(source io.Reader, limit int) (io.Reader, *Stats) {
-	// TODO(human): Implement
-	return nil, nil
+
+	upper := &UppercaseReader{
+		Reader: source,
+	}
+
+	counter := &CountingReader{
+		Reader:    upper,
+		BytesRead: 0,
+	}
+
+	limiter := &LimitReader{
+		Reader: counter,
+		Limit:  limit,
+	}
+
+	stats := &Stats{
+		Counted: &counter.BytesRead,
+	}
+
+	return limiter, stats
 }
