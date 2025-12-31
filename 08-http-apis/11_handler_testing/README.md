@@ -39,3 +39,18 @@ Write tests for:
 - **httptest patterns**: NewRequest, NewRecorder
 - **Test organization**: One table per handler
 - **Error testing**: Ensuring errors are handled correctly
+
+
+
+## User notes:
+
+```go
+	a := "/users/1234"
+    // 1. Trim removes all leading and trailing "/"
+	b := strings.Trim(a, "/")
+    // 2. Split separates the string around inner "/"
+	res := strings.Split(b, "/")
+
+    // short form: res := strings.Split(strings.Trim(a, "/"), "/")
+
+```

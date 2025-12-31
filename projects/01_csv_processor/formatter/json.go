@@ -9,7 +9,7 @@ import (
 	"github.com/warlock016/csv_processor/types"
 )
 
-func CreateRowJSON(data *types.ParsedData) types.JsonData {
+func createRowJSON(data *types.ParsedData) types.JsonData {
 	result := types.JsonData{
 		Source:   data.Source,
 		Timezone: data.Timezone.String(),
@@ -69,7 +69,7 @@ func timeToString(x []time.Time) []string {
 	return result
 }
 
-func CreateColJSON(data *types.ParsedData) types.JsonData {
+func createColJSON(data *types.ParsedData) types.JsonData {
 
 	return types.JsonData{
 		Source:     data.Source,

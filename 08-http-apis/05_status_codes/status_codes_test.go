@@ -8,6 +8,11 @@ import (
 	"testing"
 )
 
+func setup(t *testing.T) {
+	t.Helper()
+	resources[5] = Resource{ID: 5, Data: "resource 5"}
+}
+
 func TestResourceHandler(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -69,6 +74,9 @@ func TestResourceHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			setup(t)
+
 			req := httptest.NewRequest(tt.method, tt.url, nil)
 			w := httptest.NewRecorder()
 

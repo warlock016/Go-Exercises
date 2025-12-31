@@ -7,7 +7,7 @@ import (
 	"github.com/warlock016/csv_processor/types"
 )
 
-func FormatCSV(parsed *types.ParsedData) string {
+func formatCSV(parsed *types.ParsedData) string {
 	sep := ";"
 	var result strings.Builder
 	header := make([]string, 0, 1+len(parsed.Labels))

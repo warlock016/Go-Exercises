@@ -19,7 +19,8 @@ import (
 )
 
 func processPipeline(cli config.CliConfig) types.PipelineResult {
-	result := types.PipelineResult{
+	var err error
+	var result = types.PipelineResult{
 		Source: cli.ResourcePath,
 		Errors: &errors.ProcessingErrors{
 			Errors:   make([]errors.FieldError, 0),
@@ -44,7 +45,7 @@ func processPipeline(cli config.CliConfig) types.PipelineResult {
 		result.Errors.Warnings = append(result.Errors.Warnings, errs.Warnings...)
 	}
 
-	frmt, err := formatter.FormatData(parsed, cli.OutputFormat)
+	result.Output, err = formatter.FormatData(parsed, cli.OutputFormat)
 	if err != nil {
 		result.Errors.Errors = append(result.Errors.Errors, errors.FieldError{
 			Stage:   "Formatting",
@@ -52,7 +53,6 @@ func processPipeline(cli config.CliConfig) types.PipelineResult {
 		})
 	}
 
-	result.Output = frmt
 	return result
 }
 

@@ -34,7 +34,7 @@ func TestItemStore(t *testing.T) {
 	}
 
 	// Test Update
-	if !store.Update(1, "Updated Item") {
+	if _, ok := store.Update(1, "Updated Item"); !ok {
 		t.Errorf("Update(1) = false, want true")
 	}
 
