@@ -243,8 +243,20 @@
 ### Phase 3: Concurrency (Weeks 17-24)
 
 #### 09. Concurrency
-- **Status:** Locked
-- **Exercises:** 0/20 completed
+- **Status:** 🆕 Ready to Start
+- **Exercises:** 0/15 completed
+- **Priority:** Comprehensive concurrency coverage after HTTP/APIs
+- **Focus:** Goroutines, channels, select, mutex, context, worker pools, pipelines, rate limiting, graceful shutdown
+- **Created:** 2025-12-31
+- **Estimated Time:** 11-13 hours
+- **Structure:**
+  - **Tier 1 (01-03):** Goroutine basics, Channel fundamentals, Buffered channels (1.5-2 hours)
+  - **Tier 2 (04-07):** Select statement, Done channel, Mutex/shared state, Error handling (2.5-3 hours)
+  - **Tier 3 (08-12):** Worker pool, Fan-out/fan-in, Pipeline, Rate limiting, Context integration (4-4.5 hours)
+  - **Tier 4 (13-15):** Graceful shutdown, Semaphore/sync primitives, Capstone processor (3-3.5 hours)
+- **Prerequisites:** Modules 06-08 (Interfaces, Packages, HTTP/APIs) - understanding of context required
+- **Key Concepts:** `go` keyword, `sync.WaitGroup`, `chan`, `select`, `sync.Mutex`, `sync.RWMutex`, `context.Context`, graceful shutdown patterns
+- **Resources:** resources/CHANNELS_GUIDE.md (625+ lines), resources/CONTEXT_GUIDE.md (1200+ lines)
 
 ### Phase 4: Advanced (Weeks 25-32)
 

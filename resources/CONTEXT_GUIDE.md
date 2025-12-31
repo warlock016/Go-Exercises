@@ -446,6 +446,196 @@ if userID, ok := GetUserID(ctx); ok {
 }
 ```
 
+### The Problem Context Values Solve
+
+Imagine a request passing through many layers:
+
+```
+Request → Middleware → Handler → Service → Repository → Database
+                ↓           ↓          ↓           ↓
+              (logging)  (logging)  (logging)  (logging)
+```
+
+You want **every log line** to include the request ID. Without context values:
+
+```go
+// Option 1: Pass requestID through EVERY function signature
+func Handler(w http.ResponseWriter, r *http.Request, requestID string)
+func GetUser(userID int, requestID string) (*User, error)
+func QueryDB(query string, requestID string) (*sql.Rows, error)
+// This pollutes EVERY function signature!
+```
+
+With context values:
+
+```go
+// Request ID travels invisibly through the call chain
+func Handler(w http.ResponseWriter, r *http.Request)
+func GetUser(ctx context.Context, userID int) (*User, error)
+func QueryDB(ctx context.Context, query string) (*sql.Rows, error)
+
+// Any function can access it when needed:
+log.Printf("[%s] Fetching user", ctx.Value(requestIDKey))
+```
+
+### Real-World Use Cases
+
+#### 1. Distributed Tracing / Request ID
+
+```go
+// Middleware adds request ID
+func RequestIDMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        id := uuid.New().String()
+        ctx := context.WithValue(r.Context(), requestIDKey, id)
+
+        // Also add to response header for client debugging
+        w.Header().Set("X-Request-ID", id)
+
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
+}
+
+// Deep in your code, any log can include the request ID:
+func (repo *UserRepo) FindByID(ctx context.Context, id int) (*User, error) {
+    reqID := ctx.Value(requestIDKey)
+    log.Printf("[%s] Querying user %d", reqID, id)
+    // ...
+}
+```
+
+**Why it matters:** When debugging production issues, you can grep logs by request ID to see the entire request flow.
+
+#### 2. Authentication / User Info
+
+```go
+// Auth middleware validates token and adds user to context
+func AuthMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        user, err := validateToken(token)
+        if err != nil {
+            http.Error(w, "unauthorized", 401)
+            return
+        }
+
+        ctx := context.WithValue(r.Context(), userKey, user)
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
+}
+
+// Any handler can access the authenticated user:
+func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+    user := r.Context().Value(userKey).(*User)
+    post := Post{AuthorID: user.ID, ...}
+    // ...
+}
+```
+
+#### 3. Multi-Tenant Applications
+
+```go
+// Tenant middleware extracts tenant from subdomain
+func TenantMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        tenant := extractTenantFromHost(r.Host)  // e.g., "acme" from "acme.myapp.com"
+        ctx := context.WithValue(r.Context(), tenantKey, tenant)
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
+}
+
+// Database queries automatically scope to tenant:
+func (repo *ProductRepo) List(ctx context.Context) ([]Product, error) {
+    tenant := ctx.Value(tenantKey).(string)
+    return repo.db.Query("SELECT * FROM products WHERE tenant = ?", tenant)
+}
+```
+
+#### 4. Request-Scoped Database Transactions
+
+```go
+// Start transaction in middleware
+func TransactionMiddleware(db *sql.DB) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            tx, _ := db.Begin()
+            ctx := context.WithValue(r.Context(), txKey, tx)
+
+            defer func() {
+                if r := recover(); r != nil {
+                    tx.Rollback()
+                    panic(r)
+                }
+            }()
+
+            next.ServeHTTP(w, r.WithContext(ctx))
+            tx.Commit()
+        })
+    }
+}
+
+// All repository methods use the same transaction:
+func (repo *OrderRepo) Create(ctx context.Context, order Order) error {
+    tx := ctx.Value(txKey).(*sql.Tx)
+    _, err := tx.Exec("INSERT INTO orders ...", ...)
+    return err
+}
+```
+
+### When NOT to Use Context Values
+
+| Use Context Values | Use Function Parameters |
+|-------------------|------------------------|
+| Cross-cutting concerns (logging, tracing) | Business logic inputs |
+| Request-scoped metadata | Data the function needs to do its job |
+| Data that many layers need access to | Data specific to one function |
+| Optional/auxiliary data | Required data |
+
+```go
+// WRONG: Business logic in context
+ctx = context.WithValue(ctx, "userID", 123)
+ctx = context.WithValue(ctx, "amount", 99.99)
+ProcessPayment(ctx)  // What does this function need? Unclear!
+
+// RIGHT: Explicit parameters
+ProcessPayment(ctx, userID, amount)  // Clear inputs!
+```
+
+**The Rule of Thumb:**
+- Context values are for **infrastructure concerns** (tracing, auth, tenancy)
+- Function parameters are for **business logic**
+
+If removing a context value would break the business logic, it should probably be a parameter. If removing it would just disable logging/tracing, it belongs in context.
+
+### Visual Summary: The Invisible Backpack
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Context Values: The Invisible Backpack                        │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  Request arrives with context "backpack":                      │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  ctx contains:                                          │   │
+│  │  • requestID: "abc-123"     (for logging)               │   │
+│  │  • user: {ID: 42, ...}      (from auth middleware)      │   │
+│  │  • tenant: "acme"           (from subdomain)            │   │
+│  │  • deadline: 5s from now    (for cancellation)          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                │
+│  This backpack travels through:                                │
+│  Handler → Service → Repository → External API                 │
+│                                                                │
+│  Any layer can:                                                │
+│  • Read values it needs                                        │
+│  • Add new values for downstream                               │
+│  • Check if cancelled (ctx.Done())                             │
+│                                                                │
+│  Without changing function signatures!                         │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## Common Pitfalls
