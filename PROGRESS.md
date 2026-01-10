@@ -243,8 +243,8 @@
 ### Phase 3: Concurrency (Weeks 17-24)
 
 #### 09. Concurrency
-- **Status:** 🆕 Ready to Start
-- **Exercises:** 0/15 completed
+- **Status:** 🔄 In Progress
+- **Exercises:** 2/15 completed (01 ✅, 02 ✅, 03-15 pending)
 - **Priority:** Comprehensive concurrency coverage after HTTP/APIs
 - **Focus:** Goroutines, channels, select, mutex, context, worker pools, pipelines, rate limiting, graceful shutdown
 - **Created:** 2025-12-31
@@ -257,6 +257,23 @@
 - **Prerequisites:** Modules 06-08 (Interfaces, Packages, HTTP/APIs) - understanding of context required
 - **Key Concepts:** `go` keyword, `sync.WaitGroup`, `chan`, `select`, `sync.Mutex`, `sync.RWMutex`, `context.Context`, graceful shutdown patterns
 - **Resources:** resources/CHANNELS_GUIDE.md (625+ lines), resources/CONTEXT_GUIDE.md (1200+ lines)
+
+##### 01.5 Channel Reinforcement (Supplementary)
+- **Status:** 🆕 Ready to Start
+- **Exercises:** 0/6 completed
+- **Purpose:** Bridge gap between exercises 01-02 and 03, address mental model challenges
+- **Focus:** Sequential thinking trap, channel closing placement, synchronization via channels, Generator variations, multi-goroutine coordination
+- **Created:** 2025-01-02
+- **Estimated Time:** 2-3 hours
+- **Exercises:**
+  1. **Echo** - Basic send/receive with processing
+  2. **Countdown** - Generator pattern variation (counts down)
+  3. **Relay** - Chain of N goroutines passing value
+  4. **FanIn** - Multiple producers, single consumer
+  5. **Ticker** - Time-based sending with synctest
+  6. **Pipeline** - Compose multiple channel stages
+- **New Feature:** Uses Go 1.25 `testing/synctest` for fake time testing
+- **Prerequisites:** Exercises 01-02 of Module 09 completed
 
 ### Phase 4: Advanced (Weeks 25-32)
 

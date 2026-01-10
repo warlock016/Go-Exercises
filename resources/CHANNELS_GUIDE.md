@@ -93,42 +93,158 @@ close(ch)        // Signal "no more values will be sent"
 │  make(chan string, 3)                                       │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌─────────────┐                                           │
-│  │ OPEN, EMPTY │  ← ch <- "a" succeeds                     │
-│  └─────────────┘                                           │
+│  ┌─────────────┐                                            │
+│  │ OPEN, EMPTY │  ← ch <- "a" succeeds                      │
+│  └─────────────┘                                            │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌──────────────┐                                          │
-│  │ OPEN, 1 ITEM │  ← ch <- "b" succeeds                    │
-│  └──────────────┘                                          │
+│  ┌──────────────┐                                           │
+│  │ OPEN, 1 ITEM │  ← ch <- "b" succeeds                     │
+│  └──────────────┘                                           │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌─────────────────┐                                       │
-│  │ OPEN, FULL (3)  │  ← ch <- "d" BLOCKS (waits)           │
-│  └─────────────────┘                                       │
+│  ┌─────────────────┐                                        │
+│  │ OPEN, FULL (3)  │  ← ch <- "d" BLOCKS (waits)            │
+│  └─────────────────┘                                        │
 │         │                                                   │
 │    <-ch (consume)                                           │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌──────────────┐                                          │
-│  │ OPEN, 2 ITEMS│  ← more operations...                    │
-│  └──────────────┘                                          │
+│  ┌──────────────┐                                           │
+│  │ OPEN, 2 ITEMS│  ← more operations...                     │
+│  └──────────────┘                                           │
 │         │                                                   │
 │    close(ch)                                                │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌────────────────┐                                        │
-│  │ CLOSED, 2 ITEMS│  ← can still receive remaining items   │
-│  └────────────────┘                                        │
+│  ┌────────────────┐                                         │
+│  │ CLOSED, 2 ITEMS│  ← can still receive remaining items    │
+│  └────────────────┘                                         │
 │         │                                                   │
 │    <-ch, <-ch (drain)                                       │
 │         │                                                   │
 │         ▼                                                   │
-│  ┌───────────────┐                                         │
-│  │ CLOSED, EMPTY │  ← receives return ("", false)          │
-│  └───────────────┘                                         │
+│  ┌───────────────┐                                          │
+│  │ CLOSED, EMPTY │  ← receives return ("", false)           │
+│  └───────────────┘                                          │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Channel Closing: Mental Model
+
+Knowing **where** to place `close()` is a common source of bugs. Use this framework:
+
+### The "Who's Doing the Work?" Rule
+
+**The code that sends the last value should close the channel.**
+
+Ask yourself: **"Who knows when sending is finished?"**
+
+#### Case 1: Goroutine Does All the Sending
+
+```go
+func Generator(n int) <-chan int {
+    ch := make(chan int)
+
+    go func() {           // ← This goroutine is the sender
+        for i := 1; i <= n; i++ {
+            ch <- i       // ← Sends happen here
+        }
+        close(ch)         // ← Sender closes when done
+    }()
+
+    return ch             // Main function just returns the channel
+}
+```
+
+The **goroutine** knows when it's done (after the loop). So **it** closes.
+
+#### Case 2: Main Function Does All the Sending
+
+```go
+func SendValues(values []int) <-chan int {
+    ch := make(chan int, len(values))  // Buffered!
+
+    for _, v := range values {         // ← Main function is the sender
+        ch <- v
+    }
+    close(ch)                          // ← Sender closes when done
+
+    return ch
+}
+```
+
+The **main function** knows when it's done. So **it** closes.
+
+### The Ownership Model
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  PRODUCER (Sender)                                      │
+│  - Creates values                                       │
+│  - Sends them on channel                                │
+│  - Knows when work is done                              │
+│  - CLOSES the channel ← Responsibility!                 │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+                    ┌──────────┐
+                    │ channel  │
+                    └──────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  CONSUMER (Receiver)                                    │
+│  - Receives values                                      │
+│  - Processes them                                       │
+│  - Detects close via `range` or `, ok`                  │
+│  - NEVER closes ← Not its job!                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Quick Decision Checklist
+
+| Question | Answer determines... |
+|----------|---------------------|
+| Who sends on this channel? | Who should close it |
+| Where does sending happen? | Where `close()` goes (same place) |
+| What code knows "we're done"? | That's where `close()` belongs |
+
+### Common Mistake: Closing Outside the Goroutine
+
+```go
+// ❌ WRONG: close() executes BEFORE goroutine sends anything!
+func Generator(n int) <-chan int {
+    ch := make(chan int)
+
+    go func() {
+        for i := 1; i <= n; i++ {
+            ch <- i
+        }
+    }()
+
+    close(ch)  // Runs immediately! Goroutine hasn't sent yet!
+    return ch
+}
+
+// ✅ CORRECT: close() inside goroutine, after loop
+func Generator(n int) <-chan int {
+    ch := make(chan int)
+
+    go func() {
+        for i := 1; i <= n; i++ {
+            ch <- i
+        }
+        close(ch)  // Same goroutine, after all sends
+    }()
+
+    return ch
+}
+```
+
+**Memory trick:** "The hand that feeds, closes the door." The sender (feeder) is responsible for closing (shutting the door) when there's no more food.
 
 ---
 

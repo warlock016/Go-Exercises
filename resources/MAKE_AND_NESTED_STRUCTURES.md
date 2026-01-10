@@ -297,6 +297,68 @@ records := []map[string]int{}  // Empty slice
 records = append(records, map[string]int{"key": 42})  // ✅ Works!
 ```
 
+### Pattern 5: Slices of Channels - `[]chan T`
+
+**Use Case:** Relay/pipeline patterns, connecting N goroutines in a chain
+
+```go
+// Creating
+channels := make([]chan int, 5)  // len=5, each element is nil!
+
+// ❌ WRONG - Each channel is nil (blocks forever, no panic)
+channels[0] <- 42  // Blocks forever (send to nil channel)
+<-channels[0]      // Blocks forever (receive from nil channel)
+
+// ✅ CORRECT - Initialize each channel
+for i := range channels {
+    channels[i] = make(chan int)
+}
+channels[0] <- 42  // ✅ Works (assuming goroutine receives)
+```
+
+**Why two steps?**
+```go
+channels := make([]chan int, 3)
+// channels = [nil, nil, nil]  ← Each element is a nil channel!
+
+// Nil channel behavior (different from nil map!):
+// - Send to nil channel: blocks FOREVER (no panic)
+// - Receive from nil channel: blocks FOREVER (no panic)
+// This makes debugging tricky - no error, just hangs!
+
+// After initialization:
+for i := range channels {
+    channels[i] = make(chan int)
+}
+// channels = [chan, chan, chan]  ← Each is a usable channel
+```
+
+**Real example - Relay pattern (connecting N goroutines):**
+```go
+func Relay(value int, stages int) int {
+    // Create slice of channels (each nil initially!)
+    channels := make([]chan int, stages+1)
+
+    // CRITICAL: Initialize each channel
+    for i := range channels {
+        channels[i] = make(chan int)
+    }
+
+    // Now safe to use: goroutine i reads from channels[i], writes to channels[i+1]
+    for i := 0; i < stages; i++ {
+        go func(i int) {
+            val := <-channels[i]    // Read from left
+            channels[i+1] <- val+1  // Write to right
+        }(i)
+    }
+
+    channels[0] <- value      // Seed first channel
+    return <-channels[stages] // Read from last channel
+}
+```
+
+**Key insight:** This is the same pattern as 2D slices and slices of maps - the outer `make` allocates the slice, but inner elements are nil and need separate initialization.
+
 ---
 
 ## Decision Tree: When to Initialize
@@ -762,6 +824,7 @@ make(chan T, capacity)      // Buffered channel
 | `map[K]map[K2]V` | Check inner map before write | `if m[k1] == nil { m[k1] = make(map[K2]V) }` |
 | `[][]T` | Create outer, loop to create inner | `for i := range s { s[i] = make([]T, n) }` |
 | `[]map[K]V` | Create outer, initialize each map | `for i := range s { s[i] = make(map[K]V) }` |
+| `[]chan T` | Create outer, initialize each channel | `for i := range s { s[i] = make(chan T) }` |
 
 ---
 
@@ -805,6 +868,10 @@ s[0] = 42
 // Exercise 6
 s := make([]int, 10)
 s[0] = 42
+
+// Exercise 7 (Channels)
+chs := make([]chan int, 3)
+chs[0] <- 42
 ```
 
 <details>
@@ -834,6 +901,11 @@ s[0] = 42  // ❌ panic: index out of range
 // Exercise 6: WORKS! - Length is 10, index 0 exists
 s := make([]int, 10)
 s[0] = 42  // ✅ s = [42, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+// Exercise 7: BLOCKS FOREVER! - Each channel is nil
+chs := make([]chan int, 3)
+chs[0] <- 42  // ❌ Blocks forever (not panic!) - chs[0] is nil
+// Nil channels block on both send AND receive - very tricky to debug!
 ```
 
 </details>
@@ -853,6 +925,6 @@ s[0] = 42  // ✅ s = [42, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 ---
 
-**Last Updated:** November 17, 2025
-**Module:** 02 Data Structures - Exercise 10 Remediation
-**Context:** Understanding `make`, nil values, and nested structure initialization
+**Last Updated:** January 2, 2026
+**Module:** 02 Data Structures - Exercise 10 Remediation + 09 Concurrency additions
+**Context:** Understanding `make`, nil values, and nested structure initialization (including channels)
