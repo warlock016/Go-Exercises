@@ -569,9 +569,241 @@ go test -covermode=atomic -coverprofile=coverage.out
 
 ---
 
+## Testing Concurrent Code
+
+Concurrent code introduces unique testing challenges: race conditions, deadlocks, and non-deterministic behavior. This section covers essential techniques for testing goroutines and channels.
+
+### Race Detector
+
+The `-race` flag detects data races at runtime:
+
+```bash
+# Run tests with race detector
+go test -race ./...
+
+# Run specific test with race detection
+go test -race -run TestWorkerPool
+
+# Run program with race detection
+go run -race main.go
+```
+
+**What it catches:**
+- Concurrent read/write to shared variables without synchronization
+- Multiple goroutines accessing shared data unsafely
+
+**What it doesn't catch:**
+- Deadlocks
+- Logic errors
+- Channel misuse (nil channels, multiple receivers racing)
+
+**Example output:**
+```
+WARNING: DATA RACE
+Write at 0x00c000014088 by goroutine 7:
+  main.main.func1()
+      /path/to/file.go:15 +0x38
+
+Previous read at 0x00c000014088 by goroutine 6:
+  main.main.func1()
+      /path/to/file.go:15 +0x38
+```
+
+### Detecting Flaky Tests
+
+Flaky tests pass sometimes and fail sometimes — often due to race conditions:
+
+```bash
+# Run test multiple times to expose flakiness
+go test -race -run TestPingPong -count=10
+
+# Run without race flag to compare
+go test -run TestPingPong -count=10
+```
+
+**Key insight:** A test that passes without `-race` but fails with it is a major red flag. The race detector changes scheduler behavior, exposing hidden bugs.
+
+### Timeout Wrappers for Deadlock Detection
+
+Wrap blocking operations to detect hangs:
+
+```go
+func TestWithTimeout(t *testing.T) {
+    done := make(chan int)
+
+    go func() {
+        done <- FunctionThatMightDeadlock()
+    }()
+
+    select {
+    case result := <-done:
+        // Test assertions on result
+        if result != expected {
+            t.Errorf("got %d, want %d", result, expected)
+        }
+    case <-time.After(2 * time.Second):
+        t.Fatal("test timed out - likely deadlock")
+    }
+}
+```
+
+### Testing with synctest (Go 1.25+)
+
+The `testing/synctest` package provides fake time for testing time-dependent code:
+
+```go
+import (
+    "testing"
+    "testing/synctest"
+    "time"
+)
+
+func TestTimeout(t *testing.T) {
+    t.Run("times out after duration", func(t *testing.T) {
+        synctest.Test(t, func(t *testing.T) {
+            ch := Timeout(5 * time.Second)
+
+            // Fast-forward time (instant, no real waiting)
+            time.Sleep(5 * time.Second)
+
+            select {
+            case <-ch:
+                // Success - channel closed
+            default:
+                t.Error("channel should be closed")
+            }
+        })
+    })
+}
+```
+
+**Important:** `t.Run` must be **outside** the `synctest.Test` bubble, not inside:
+
+```go
+// ✅ CORRECT
+t.Run("subtest", func(t *testing.T) {
+    synctest.Test(t, func(t *testing.T) {
+        // test code
+    })
+})
+
+// ❌ WRONG - causes panic
+synctest.Test(t, func(t *testing.T) {
+    t.Run("subtest", func(t *testing.T) {  // panic!
+        // test code
+    })
+})
+```
+
+### Common Concurrency Testing Patterns
+
+#### Testing Channel Producers
+
+```go
+func TestGenerator(t *testing.T) {
+    done := make(chan struct{})
+    ch := Generator(done)
+
+    // Collect some values
+    var got []int
+    for i := 0; i < 5; i++ {
+        got = append(got, <-ch)
+    }
+
+    // Signal stop
+    close(done)
+
+    want := []int{0, 1, 2, 3, 4}
+    if !reflect.DeepEqual(got, want) {
+        t.Errorf("got %v, want %v", got, want)
+    }
+}
+```
+
+#### Testing Worker Pools
+
+```go
+func TestWorkerPool(t *testing.T) {
+    input := []int{1, 2, 3, 4, 5}
+    got := WorkerPool(input)
+    want := 30  // sum of doubled values
+
+    if got != want {
+        t.Errorf("WorkerPool(%v) = %d, want %d", input, got, want)
+    }
+}
+
+// Also run with race detector:
+// go test -race -run TestWorkerPool
+```
+
+#### Testing for Goroutine Leaks
+
+```go
+func TestNoGoroutineLeak(t *testing.T) {
+    before := runtime.NumGoroutine()
+
+    // Run your concurrent code
+    done := make(chan struct{})
+    ch := Generator(done)
+    <-ch  // receive one value
+    close(done)
+
+    // Give goroutines time to clean up
+    time.Sleep(100 * time.Millisecond)
+
+    after := runtime.NumGoroutine()
+    if after > before {
+        t.Errorf("goroutine leak: %d before, %d after", before, after)
+    }
+}
+```
+
+### Debugging Failed Concurrent Tests
+
+When a concurrent test fails:
+
+1. **Add timeout wrapper** — Confirms if it's a deadlock
+2. **Run with `-race`** — Catches data races
+3. **Run with `-count=10`** — Exposes flaky behavior
+4. **Use Delve** — `dlv test -- -test.run TestName`
+   - `goroutines` command shows what each goroutine is blocked on
+5. **Add strategic logging** — Track channel operations
+
+```go
+// Debug logging for channels
+func debugSend(ch chan<- int, v int, name string) {
+    log.Printf("[%s] about to send %d", name, v)
+    ch <- v
+    log.Printf("[%s] sent %d", name, v)
+}
+```
+
+### Common Concurrent Test Bugs
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Test hangs | Deadlock, nil channel | Add timeout wrapper, check channel initialization |
+| Flaky pass/fail | Race condition | Run with `-race -count=10` |
+| Wrong values | Multiple receivers racing | Use dedicated channels per receiver |
+| Goroutine leak | Missing close, blocked send | Check all goroutines exit, add done channels |
+
+### Best Practices for Concurrent Tests
+
+1. **Always use `-race` in CI** — Catches races before production
+2. **Run tests multiple times** — `go test -count=10` exposes flakiness
+3. **Use timeouts** — Don't let tests hang forever
+4. **Test edge cases** — Empty input, single element, cancellation
+5. **Verify cleanup** — Check goroutine count before/after
+6. **Isolate concurrent logic** — Makes testing easier
+
+---
+
 ## Resources
 
 - [Go Testing Package](https://pkg.go.dev/testing)
 - [Go Blog - Table Driven Tests](https://go.dev/blog/subtests)
 - [httptest Package](https://pkg.go.dev/net/http/httptest)
 - [Go by Example - Testing](https://gobyexample.com/testing)
+- [Go Race Detector](https://go.dev/doc/articles/race_detector)
+- [testing/synctest (Go 1.25)](https://pkg.go.dev/testing/synctest)
