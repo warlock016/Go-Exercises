@@ -623,6 +623,68 @@ go test -run TestPingPong -count=10
 
 **Key insight:** A test that passes without `-race` but fails with it is a major red flag. The race detector changes scheduler behavior, exposing hidden bugs.
 
+### Race Detection Count Recommendations
+
+Race conditions are **non-deterministic**—they depend on precise timing, thread scheduling, and CPU load. A race might manifest 1 in 100 runs, or 1 in 10,000. Running tests multiple times increases the probability of catching intermittent races.
+
+#### Recommended Counts by Context
+
+| Context | Count | Rationale |
+|---------|-------|-----------|
+| Quick local check | 10-50 | Fast feedback during development |
+| Before committing | 100 | Reasonable confidence |
+| CI/CD pipeline | 100-500 | Balance between thoroughness and build time |
+| After concurrency changes | 1000+ | High confidence for critical code |
+| Investigating flaky tests | 10000 | Maximize chance of reproducing |
+
+#### Practical Commands
+
+```bash
+# Quick sanity check
+go test -race -count=10 ./...
+
+# Pre-commit confidence
+go test -race -count=100 ./...
+
+# Thorough (takes longer)
+go test -race -count=1000 -timeout=10m ./...
+```
+
+#### Varying GOMAXPROCS with `-cpu`
+
+The `-cpu` flag runs tests at different GOMAXPROCS settings, which changes goroutine scheduling behavior:
+
+```bash
+# Run at each CPU count (multiplies total runs)
+go test -race -count=100 -cpu=1,2,4,8 ./...
+```
+
+This runs the full test suite 4 times (once at each CPU setting), multiplying coverage. Different CPU counts expose different race conditions.
+
+#### Stress Testing Until Failure
+
+For exhaustive race hunting, use the `stress` tool:
+
+```bash
+# Install stress tool
+go install golang.org/x/tools/cmd/stress@latest
+
+# Run tests repeatedly until failure (Ctrl+C to stop)
+stress -p 4 go test -race ./...
+```
+
+The `-p 4` flag runs 4 parallel instances. This is useful when you suspect a race but can't reproduce it.
+
+#### CI/CD Recommendations
+
+| Strategy | Command | When |
+|----------|---------|------|
+| Every PR | `go test -race -count=100` | Fast feedback, catches most races |
+| Nightly build | `go test -race -count=1000 -cpu=1,2,4` | Thorough, catches subtle races |
+| Release gate | `stress -p 4 -timeout=10m go test -race` | Maximum confidence |
+
+**Note:** The `-race` flag adds ~2-10x overhead. Balance thoroughness with build time based on your team's tolerance.
+
 ### Timeout Wrappers for Deadlock Detection
 
 Wrap blocking operations to detect hangs:
@@ -791,7 +853,7 @@ func debugSend(ch chan<- int, v int, name string) {
 ### Best Practices for Concurrent Tests
 
 1. **Always use `-race` in CI** — Catches races before production
-2. **Run tests multiple times** — `go test -count=10` exposes flakiness
+2. **Run tests multiple times** — `go test -race -count=100` for pre-commit confidence
 3. **Use timeouts** — Don't let tests hang forever
 4. **Test edge cases** — Empty input, single element, cancellation
 5. **Verify cleanup** — Check goroutine count before/after
@@ -807,3 +869,4 @@ func debugSend(ch chan<- int, v int, name string) {
 - [Go by Example - Testing](https://gobyexample.com/testing)
 - [Go Race Detector](https://go.dev/doc/articles/race_detector)
 - [testing/synctest (Go 1.25)](https://pkg.go.dev/testing/synctest)
+- [stress tool](https://pkg.go.dev/golang.org/x/tools/cmd/stress) - Repeated test execution for race hunting

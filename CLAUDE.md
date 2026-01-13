@@ -272,3 +272,151 @@ When student completes exercises, update `PROGRESS.md`:
 3. **String mastery is priority #1** - 45-min diagnostic struggle now being addressed systematically
 4. **Testing is priority #2** - 15-min diagnostic struggle, planned remediation module
 5. **Student wants advanced struct/interface exercises** - Plan for this after remediation modules complete
+
+---
+
+## Learning Approach Evolution (Updated 2026-01-12)
+
+### The Concern: "Fill in the Blanks" vs "Blank Page" Skills
+
+After ~2 months of guided exercises, the student identified a gap in the learning approach:
+
+**What the current approach trains well:**
+- Syntax fluency and Go idioms
+- Pattern recognition (seeing a problem → applying known pattern)
+- Implementation skills (given a signature, write the body)
+- Building a library of "blueprint" reference implementations
+
+**What the current approach under-trains:**
+- **Problem decomposition** → "What packages/files do I need?"
+- **API design** → "What should the function signatures be?"
+- **Type invention** → "What structs/interfaces make sense?"
+- **Trade-off judgment** → "Should this be synchronous or async? File or DB?"
+
+These are the "blank page" skills needed for real projects.
+
+### Decision: Two-Phase Approach
+
+**Phase 1 (Current): Complete Modules 03-11**
+- Continue with current approach (signatures + tests provided)
+- Build reference implementations as "blueprints" for future use
+- Complete all core Go topics before shifting
+- Exercises serve as documentation/examples for future reference
+
+**Phase 2 (After Module 11): Project-Based Learning**
+- Shift to project-focused work (see "Future Approach" below)
+- Student designs APIs, packages, types
+- Claude provides: test cases, edge cases, design review, hints
+- Focus on the "blank page" skills
+
+### Archived Modules
+
+The following modules are **paused/archived** until after Phase 2 begins:
+- **00.7 Algorithms & State Machines** (4/14) - Requires interface{} concepts
+- **00.8 Graph Theory** (2/28) - Will return if needed for projects
+
+These can be revisited on-demand when relevant to projects.
+
+### Student Context & Constraints
+
+- **Time budget:** 30-60 minutes daily, weekends for deeper work
+- **Background:** Renewable energy engineering (PV/BESS), previous experience at Amperecloud
+- **Interests:** Backend systems, data pipelines, web scraping, eventually ML/AI
+- **Hardware constraints:** No Modbus hardware access, no GPU for ML training
+
+### Why Keep Current Approach for Now
+
+The student's reasoning (2026-01-12):
+> "I am still new to golang and would like to have a first impression of common patterns first. Else I might risk getting stuck on specific exercises and wasting too much time. Also the current exercises could serve as documentation/examples for future reference, when dealing with more advanced topics, like blueprints that I could use for reference."
+
+This is sound pedagogy: **internalize patterns first, then apply them creatively**.
+
+---
+
+## Future Approach: Project-Based Learning (Post-Module 11)
+
+**When to activate:** After completing all exercises through Module 11 (Performance).
+
+### Capstone Project: Telemetry Ingestion Platform
+
+Aligned with student's PV/BESS background and career interests:
+
+**Components:**
+1. **Connectors (inputs):**
+   - Modbus TCP collector (from simulator/emulator)
+   - HTTP/API collector (weather, market data)
+   - Web scraper (public energy data)
+
+2. **Core pipeline (Go):**
+   - Scheduler (periodic jobs)
+   - Worker pool (bounded concurrency)
+   - Retry/backoff + timeout + context cancellation
+   - Idempotent writes
+   - Storage (Postgres/SQLite)
+   - API (REST, optionally gRPC)
+   - Observability (structured logs, metrics, health endpoints)
+
+3. **Optional extensions:**
+   - Python: dataset builder for ML prep
+   - JS: minimal dashboard
+
+### New Exercise Format (Progressive Scaffolding Reduction)
+
+When creating new exercises in Phase 2:
+
+| Tier | What Claude Provides | What Student Designs |
+|------|---------------------|---------------------|
+| **Tier 1** | Full signatures + tests | Implementation only |
+| **Tier 2** | Tests only | Types + signatures + implementation |
+| **Tier 3** | Problem description + examples | Tests + types + signatures + implementation |
+| **Tier 4** | Problem description only | Everything (API review before tests) |
+
+### Daily Practice Loops (30-60 min)
+
+**Loop A: Design-first**
+- 10 min: spec + API sketch
+- 20 min: write tests
+- 20 min: implement smallest passing slice
+
+**Loop B: Refactor-first**
+- Take working code and improve:
+  - Rename types/functions to clarify intent
+  - Split package boundaries
+  - Improve error messages and wrapping
+  - Add context cancellation support
+
+**Loop C: Read-first**
+- Read 30 minutes of high-quality Go code (stdlib or reputable repo)
+- Write a short "pattern note":
+  - What is the package's public API?
+  - How do they structure errors?
+  - What's the concurrency strategy?
+
+### 80/20 Focus Split
+
+- **80% main track:** Capstone project work
+- **20% exploration:** Guilt-free dabbling (archived modules, new interests), but no new "main projects"
+
+### How to Use Claude Differently in Phase 2
+
+**Allowed:**
+- Ask for test cases only (not signatures)
+- Ask for design review and edge case identification
+- Ask for "one hint at a time"
+- Ask "explain why this is idiomatic / not idiomatic"
+- Ask for refactoring suggestions
+
+**Avoid:**
+- Asking for complete implementations
+- Accepting function signatures before designing your own
+- Skipping the "spec + API sketch" step
+
+### Success Criteria for Phase 2
+
+The student is ready to graduate from guided learning when:
+- [ ] Can decompose a feature into 3-6 packages without overengineering
+- [ ] Function signatures feel "inevitable" rather than arbitrary
+- [ ] Tests cover behavior and failure modes without prompting
+- [ ] Errors are contextual, wrapped, and actionable
+- [ ] Concurrency uses cancellation and avoids races/leaks
+- [ ] Code "feels like Go" (idiomatic patterns)

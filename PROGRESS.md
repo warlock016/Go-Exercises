@@ -10,12 +10,58 @@
 
 **Overall Level:** Accelerated Beginner → Junior Track
 **Modules Completed:** 4/15 (Diagnostic ✅, String Mastery ✅, Fundamentals 94% ✅, Data Structures ✅)
-**Modules In Progress:** 2/15 (Recursion 🔄 10/13, Graph Theory 🔄 2/15)
-**Modules Paused:** 1/15 (Algorithms ⏸️ 5/12 - deferred until Module 03)
-**Exercises Completed:** ~62/~86 in active modules (72% of started work)
+**Modules In Progress:** 3/15 (Concurrency 🔄 8/15, Recursion 🔄 10/13, Graph Theory 🔄 2/28)
+**Modules Paused:** 1/15 (Algorithms ⏸️ 4/14 - deferred until interface{} mastery)
+**Supplementary Completed:** Closure Practice ✅, Closure Syntax ✅, Channel Reinforcement ✅
+**Exercises Completed:** ~75/~100 in active modules (75% of started work)
 **Projects Completed:** 0/4
 
-**Current Focus:** Project 0 (Weather CLI) + Module 00.9 Recursion cleanup
+**Current Focus:** Module 09 Concurrency - Tier 3 (Worker Pool, Fan-out/Fan-in, Pipelines)
+
+---
+
+## 🗺️ Roadmap Decision (2026-01-12)
+
+### Context: "Fill in the Blanks" vs "Blank Page" Skills
+
+After ~2 months of guided exercises, identified a gap in the learning approach. The current exercise structure (function signatures + tests provided → implement) builds **syntax fluency** but under-trains:
+
+- **Problem decomposition** → "What packages/files do I need?"
+- **API design** → "What should the function signatures be?"
+- **Type invention** → "What structs/interfaces make sense?"
+- **Trade-off judgment** → "Should this be sync or async? File or DB?"
+
+### Decision: Two-Phase Approach
+
+| Phase | Focus | Approach |
+|-------|-------|----------|
+| **Phase 1 (Current)** | Complete Modules 03-11 | Signatures + tests provided, build "blueprint" reference implementations |
+| **Phase 2 (Post-Module 11)** | Project-Based Learning | Student designs APIs/types, Claude provides test cases + review |
+
+**Rationale:** Internalize patterns first via guided exercises, then apply them creatively in projects. Exercises serve as documentation/blueprints for future reference.
+
+### Archived Modules (Deferred to Phase 2)
+
+- **00.7 Algorithms & State Machines** (4/14) - Revisit when relevant to projects
+- **00.8 Graph Theory** (2/28) - Revisit when relevant to projects
+
+### Phase 2 Capstone: Telemetry Ingestion Platform
+
+Aligned with PV/BESS background:
+- **Connectors:** Modbus TCP (simulator), HTTP/API, Web scraper
+- **Core:** Scheduler, Worker pool, Retry/backoff, Storage, REST API
+- **Optional:** Python ML dataset prep, JS dashboard
+
+### Success Criteria for Phase 2 Transition
+
+After completing Module 11, student should be ready for "blank page" work when:
+- [ ] Can decompose features into 3-6 packages without overengineering
+- [ ] Function signatures feel "inevitable" rather than arbitrary
+- [ ] Tests cover behavior and failure modes without prompting
+- [ ] Errors are contextual, wrapped, and actionable
+- [ ] Concurrency uses cancellation and avoids races/leaks
+
+**Full details:** See `CLAUDE.md` → "Learning Approach Evolution" and "Future Approach: Project-Based Learning"
 
 ---
 
@@ -130,30 +176,30 @@
 - **Target:** Complete in Week 2-3 (3-5 hours)
 
 #### 00.7. Algorithms & State Machines (Custom Module)
-- **Status:** ⏸️ Paused - Completed 5/12 exercises
-- **Exercises:** 5/12 completed (01 ✅, 02 ✅, 03 ✅, 04 ⚠️, 05 ✅)
-- **Priority:** ⚠️ CRITICAL - Address algorithmic thinking gap discovered in String Mastery Ex 10
+- **Status:** ⏸️ Paused - 4/14 exercises passing
+- **Exercises:** 4/14 passing (01 ✅, 02 ✅, 03 ✅, 05 ✅) - Module expanded from original 12
+- **Priority:** ⚠️ DEFERRED - Address after interface{} mastery in Module 06
 - **Focus:** State machines, parsing patterns, two pointers, sliding window, backtracking, finite automata
 - **Paused Reason:** Exercise 06 requires interface{} concepts not yet learned - pivoting to Module 01 for systematic coverage
 - **Created:** 2025-11-14 in response to run-length encoding decoder challenges
-- **Note:** Exercises 04-05 have failing tests - will revisit after fundamentals. Exercise 06 (JSON Parser) deferred until interface{} mastery.
+- **Note:** Exercises 04, 06-12 have failing tests - will revisit after interfaces. Exercise 06 (JSON Parser) deferred until interface{} mastery.
 
 #### 00.8. Graph Theory & Algorithmic Thinking (Custom Module)
-- **Status:** 🔄 In Progress
-- **Exercises:** 2/15 completed (Exercises 01-02 ✅, 03-15 pending)
+- **Status:** 🔄 In Progress - Early Stage
+- **Exercises:** 2/28 passing (7%) - Module expanded significantly from original 15
+- **Passing:** 01 (Graph Properties) ✅, 02 (Path Existence) ✅
 - **Priority:** ⚠️ HIGH - Address graph algorithm understanding gap discovered in Module 02 Exercise 16
 - **Focus:** BFS/DFS mastery, shortest paths, cycles, topological sort, connected components, MST, Dijkstra, Floyd-Warshall, real-world applications
 - **Created:** 2025-11-20 in response to BFS/DFS implementation struggles
 - **Approach:** Comprehensive 4-tier curriculum (Foundation → Application → Integration → Mastery)
-- **Structure:**
-  - **Tier 1 (01-04):** Graph properties, path finding, BFS/DFS deep dives (4-5 hours)
-  - **Tier 2 (05-09):** Connected components, bipartite detection, Dijkstra, topological sort, visualization (5-6 hours)
-  - **Tier 3 (10-12):** Cycle analysis, MST, strongly connected components (3-4 hours)
-  - **Tier 4 (13-15):** Floyd-Warshall, algorithm selection, social network analysis capstone (4-5 hours)
-- **Target:** Interleave with Module 02 - alternate between data structures and graph exercises
+- **Structure:** (expanded from original plan)
+  - **Tier 1 (01-04):** Graph properties, path finding, BFS/DFS deep dives
+  - **Tier 2 (05-09):** Connected components, bipartite detection, Dijkstra, topological sort
+  - **Tier 3 (10-12):** Cycle analysis, MST, strongly connected components
+  - **Tier 4 (13+):** Floyd-Warshall, algorithm selection, capstone exercises
 - **Key Insight:** Gap identified - can implement BFS/DFS from templates but lacks deep understanding of WHEN/WHY to use each algorithm
 - **Resources:** GRAPH_THEORY_GUIDE.md, ALGORITHMIC_THINKING.md, BFS_PATTERNS_GUIDE.md added to resources/
-- **Total Estimated Time:** 12-15 hours
+- **Total Estimated Time:** 15-20 hours (revised estimate due to expansion)
 
 #### 00.9. Recursion Mastery (Custom Module)
 - **Status:** 🔄 In Progress - Nearly Complete!
@@ -172,6 +218,18 @@
 - **Key Achievement:** Advanced recursion (backtracking, memoization, N-Queens) mastered!
 - **Resources:** RECURSION_GUIDE.md (400+ lines) added to resources/
 - **Remaining Work:** Fix 3 exercises with minor bugs (edge cases)
+
+#### 00.10. Closure Practice (Supplementary)
+- **Status:** ✅ Completed
+- **Exercises:** 1/1 completed
+- **Focus:** Closure fundamentals and practical usage
+- **Note:** Single-exercise module for targeted closure practice
+
+#### 00.11. Closure Syntax Mastery (Supplementary)
+- **Status:** ✅ Completed
+- **Exercises:** 1/1 completed
+- **Focus:** Closure syntax patterns and idioms
+- **Note:** Single-exercise module for closure syntax reinforcement
 
 #### 01. Fundamentals
 - **Status:** ✅ Complete (Partial - 94%)
@@ -243,37 +301,49 @@
 ### Phase 3: Concurrency (Weeks 17-24)
 
 #### 09. Concurrency
-- **Status:** 🔄 In Progress
-- **Exercises:** 2/15 completed (01 ✅, 02 ✅, 03-15 pending)
-- **Priority:** Comprehensive concurrency coverage after HTTP/APIs
-- **Focus:** Goroutines, channels, select, mutex, context, worker pools, pipelines, rate limiting, graceful shutdown
-- **Created:** 2025-12-31
-- **Estimated Time:** 11-13 hours
+- **Status:** 🔄 In Progress - Tier 2 Complete! Starting Tier 3
+- **Exercises:** 8/15 completed (53%)
+- **Progress:**
+  - **Tier 1:** 01 ✅, 02 ✅, 03 ✅ (100% complete)
+  - **Tier 2:** 04 ✅, 05 ✅, 06 ✅, 07 ✅ (100% complete)
+  - **Tier 3:** 08-12 pending (next up: Worker Pool)
+  - **Tier 4:** 13-15 pending
+- **Started:** 2025-12-31
+- **Last Updated:** 2026-01-12
+- **Time Spent:** ~10-12 hours so far
+- **Key Patterns Mastered:**
+  - WaitGroup + close + range for concurrent collection
+  - Select statement with timeout and nil channel handling
+  - Done channel for cancellation with priority checking
+  - Mutex vs RWMutex selection (read-heavy vs write-heavy)
+  - Generic concurrent result collection with order preservation
+  - Timeout wrapper pattern (select + time.After)
+  - Concurrent fetch with partial failure (single struct through channel)
 - **Structure:**
-  - **Tier 1 (01-03):** Goroutine basics, Channel fundamentals, Buffered channels (1.5-2 hours)
-  - **Tier 2 (04-07):** Select statement, Done channel, Mutex/shared state, Error handling (2.5-3 hours)
-  - **Tier 3 (08-12):** Worker pool, Fan-out/fan-in, Pipeline, Rate limiting, Context integration (4-4.5 hours)
-  - **Tier 4 (13-15):** Graceful shutdown, Semaphore/sync primitives, Capstone processor (3-3.5 hours)
-- **Prerequisites:** Modules 06-08 (Interfaces, Packages, HTTP/APIs) - understanding of context required
+  - **Tier 1 (01-03):** Goroutine basics, Channel fundamentals, Buffered channels ✅
+  - **Tier 2 (04-07):** Select statement, Done channel, Mutex/shared state, Error handling ✅
+  - **Tier 3 (08-12):** Worker pool, Fan-out/fan-in, Pipeline, Rate limiting, Context integration
+  - **Tier 4 (13-15):** Graceful shutdown, Semaphore/sync primitives, Capstone processor
 - **Key Concepts:** `go` keyword, `sync.WaitGroup`, `chan`, `select`, `sync.Mutex`, `sync.RWMutex`, `context.Context`, graceful shutdown patterns
-- **Resources:** resources/CHANNELS_GUIDE.md (625+ lines), resources/CONTEXT_GUIDE.md (1200+ lines)
+- **Resources:** resources/CHANNELS_GUIDE.md, resources/CONTEXT_GUIDE.md, resources/MUTEX_GUIDE.md, resources/CONCURRENCY_DEBUGGING_GUIDE.md
 
 ##### 01.5 Channel Reinforcement (Supplementary)
-- **Status:** 🆕 Ready to Start
-- **Exercises:** 0/6 completed
+- **Status:** ✅ Completed
+- **Exercises:** 6/6 completed + Debugging Demo (3 buggy functions fixed)
 - **Purpose:** Bridge gap between exercises 01-02 and 03, address mental model challenges
 - **Focus:** Sequential thinking trap, channel closing placement, synchronization via channels, Generator variations, multi-goroutine coordination
-- **Created:** 2025-01-02
-- **Estimated Time:** 2-3 hours
+- **Completed:** 2026-01-10
+- **Time Spent:** ~3-4 hours
 - **Exercises:**
-  1. **Echo** - Basic send/receive with processing
-  2. **Countdown** - Generator pattern variation (counts down)
-  3. **Relay** - Chain of N goroutines passing value
-  4. **FanIn** - Multiple producers, single consumer
-  5. **Ticker** - Time-based sending with synctest
-  6. **Pipeline** - Compose multiple channel stages
-- **New Feature:** Uses Go 1.25 `testing/synctest` for fake time testing
-- **Prerequisites:** Exercises 01-02 of Module 09 completed
+  1. **Echo** ✅ - Basic send/receive with processing
+  2. **Countdown** ✅ - Generator pattern variation (counts down)
+  3. **Relay** ✅ - Chain of N goroutines passing value
+  4. **FanIn** ✅ - Multiple producers, single consumer
+  5. **Ticker** ✅ - Time-based sending with synctest
+  6. **Pipeline** ✅ - Compose multiple channel stages
+  7. **Debugging Demo** ✅ - Fixed BuggyWorkerPool, BuggyPingPong, BuggyFanOut
+- **Key Achievement:** Used Go 1.25 `testing/synctest` for fake time testing
+- **Key Insight:** Learned to debug concurrency issues using -race flag, timeout wrappers, and Delve's goroutines command
 
 ### Phase 4: Advanced (Weeks 25-32)
 
@@ -409,6 +479,7 @@ Progress toward Junior Gopher status:
 
 **Date** | **Insight**
 ---------|------------
+2026-01-12 | **Concurrency Deep Dive - Tier 2 Nearly Complete!** Completed 7/15 concurrency exercises (01-06 + 01.5 channel reinforcement). Mastered: WaitGroup + close + range pattern, select with timeout/nil channels, done channel priority checking, Mutex vs RWMutex selection, generic concurrent result collection with order preservation. Key realization: indexed result structs preserve order in concurrent processing. Currently on Exercise 07 (error handling patterns) - ProcessWithErrors, FirstError, ProcessResults complete. Two functions remaining: RunWithTimeout, ParallelFetch. Created MUTEX_GUIDE.md and extended TESTING_GUIDE.md with concurrency testing section. **Learning insight:** These patterns click when you feel the need for them in real code, not just exercises.
 2025-12-02 | **Major Milestone - Module 02 Complete + Recursion Mastery!** Verified all 19/19 Data Structures exercises passing. Recursion module at 10/13 (77%) with advanced topics (backtracking, memoization, N-Queens) mastered. Expression Evaluator (00.7/05) now fully working - implemented recursive descent parser with tokenization and operator precedence. **Ready for applied projects!** Starting Project 0 (Weather CLI) to practice HTTP, JSON, and code organization in a real context.
 2025-12-02 | **Expression Evaluator Complete:** Implemented full recursive descent parser with tokenizer, operator precedence (parseFactor → parseTerm → parseExpression), and error handling. Key insight: precedence through call depth - each level calls the one below it, ensuring `*` binds tighter than `+`.
 2025-11-16 | **Simplicity Breakthrough & Slice Direction Bug:** Completed Tier 1-2 (exercises 01-08) of Module 02. Experienced major "aha!" moment: initially overwhelmed by Map/Filter/Reduce and GroupByLength, but realized they're just simple loops and maps. This is Go's core philosophy - explicit over clever. **Bug found in Queue.Dequeue:** Correctly retrieved from front (`q.values[0]`) but incorrectly removed from back (`q.values[:len(s)-1]`). Fixed to `q.values[1:]`. The solution was "lol so simple" - one character change. This reveals a learning gap: need more complex slice manipulation exercises to nail the mental model of slice slicing direction (front vs back removal). **Request:** Create focused exercises on: slice direction patterns, two-pointer algorithms, in-place modifications, edge cases.
@@ -420,5 +491,5 @@ Progress toward Junior Gopher status:
 
 ---
 
-**Last Updated:** 2025-12-02
-**Next Review:** After completing Project 0 (Weather CLI)
+**Last Updated:** 2026-01-12
+**Next Review:** After completing Module 09 Tier 2 (Exercise 07)
