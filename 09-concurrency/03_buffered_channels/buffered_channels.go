@@ -28,11 +28,6 @@ func Producer(values []int, bufferSize int) <-chan int {
 
 	ch := make(chan int, bufferSize)
 
-	// if len(values) == 0 {
-	// 	close(ch)
-	// 	return ch
-	// }
-
 	go func() {
 		for _, v := range values {
 			ch <- v
