@@ -37,7 +37,7 @@ func TestProcessor_BasicProcessing(t *testing.T) {
 	go processor.Start(ctx)
 
 	// Submit jobs
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		err := processor.Submit(Job{ID: string(rune('A' + i))})
 		if err != nil {
 			t.Errorf("Submit() error = %v", err)
@@ -386,11 +386,11 @@ func TestProcessor_ConcurrentSubmit(t *testing.T) {
 	go processor.Start(ctx)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for j := 0; j < 10; j++ {
+			for j := range 10 {
 				processor.Submit(Job{ID: string(rune(id*10 + j))})
 			}
 		}(i)

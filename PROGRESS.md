@@ -10,13 +10,13 @@
 
 **Overall Level:** Accelerated Beginner → Junior Track
 **Modules Completed:** 4/15 (Diagnostic ✅, String Mastery ✅, Fundamentals 94% ✅, Data Structures ✅)
-**Modules In Progress:** 3/15 (Concurrency 🔄 8/15, Recursion 🔄 10/13, Graph Theory 🔄 2/28)
+**Modules In Progress:** 3/15 (Concurrency 🔄 13/15, Recursion 🔄 10/13, Graph Theory 🔄 2/28)
 **Modules Paused:** 1/15 (Algorithms ⏸️ 4/14 - deferred until interface{} mastery)
 **Supplementary Completed:** Closure Practice ✅, Closure Syntax ✅, Channel Reinforcement ✅
 **Exercises Completed:** ~75/~100 in active modules (75% of started work)
 **Projects Completed:** 0/4
 
-**Current Focus:** Module 09 Concurrency - Tier 3 (Worker Pool, Fan-out/Fan-in, Pipelines)
+**Current Focus:** Module 09 Concurrency - Tier 4 (Semaphore/sync primitives, Capstone processor remaining)
 
 ---
 
@@ -353,16 +353,16 @@ The actual learning path was **non-linear**:
 ### Phase 3: Concurrency (Weeks 17-24)
 
 #### 09. Concurrency
-- **Status:** 🔄 In Progress - Tier 2 Complete! Starting Tier 3
-- **Exercises:** 8/15 completed (53%)
+- **Status:** 🔄 In Progress - Nearly Complete!
+- **Exercises:** 13/15 completed (87%)
 - **Progress:**
   - **Tier 1:** 01 ✅, 02 ✅, 03 ✅ (100% complete)
   - **Tier 2:** 04 ✅, 05 ✅, 06 ✅, 07 ✅ (100% complete)
-  - **Tier 3:** 08-12 pending (next up: Worker Pool)
-  - **Tier 4:** 13-15 pending
+  - **Tier 3:** 08 ✅, 09 ✅, 10 ✅, 11 ✅, 12 ✅ (100% complete)
+  - **Tier 4:** 13 ✅, 14-15 pending (33% complete)
 - **Started:** 2025-12-31
-- **Last Updated:** 2026-01-12
-- **Time Spent:** ~10-12 hours so far
+- **Last Updated:** 2026-01-18
+- **Time Spent:** ~15-18 hours so far
 - **Key Patterns Mastered:**
   - WaitGroup + close + range for concurrent collection
   - Select statement with timeout and nil channel handling
@@ -371,12 +371,22 @@ The actual learning path was **non-linear**:
   - Generic concurrent result collection with order preservation
   - Timeout wrapper pattern (select + time.After)
   - Concurrent fetch with partial failure (single struct through channel)
+  - **Worker pool**: Fixed workers consuming from shared job channel
+  - **Fan-out/Fan-in**: Distribute work across workers, merge results
+  - **Pipeline stages**: Chain transformations with channels between stages
+  - Token bucket rate limiting with capacity and refill
+  - Context integration: WithCancel, WithTimeout, per-item timeouts
+  - Retry with exponential backoff respecting context cancellation
+  - **Graceful shutdown**: Two-phase (stop accepting → wait for in-flight)
+  - **Ready channel pattern**: Synchronize cross-function dependencies (e.g., `set` channel)
+  - **Send vs Close semantics**: Close for broadcast signals, send for data
+  - **WaitGroup happens-before**: All Add() must complete before Wait()
 - **Structure:**
   - **Tier 1 (01-03):** Goroutine basics, Channel fundamentals, Buffered channels ✅
   - **Tier 2 (04-07):** Select statement, Done channel, Mutex/shared state, Error handling ✅
-  - **Tier 3 (08-12):** Worker pool, Fan-out/fan-in, Pipeline, Rate limiting, Context integration
-  - **Tier 4 (13-15):** Graceful shutdown, Semaphore/sync primitives, Capstone processor
-- **Key Concepts:** `go` keyword, `sync.WaitGroup`, `chan`, `select`, `sync.Mutex`, `sync.RWMutex`, `context.Context`, graceful shutdown patterns
+  - **Tier 3 (08-12):** Worker pool ✅, Fan-out/fan-in ✅, Pipeline ✅, Rate limiting ✅, Context integration ✅
+  - **Tier 4 (13-15):** Graceful shutdown ✅, Semaphore/sync primitives, Capstone processor
+- **Key Concepts:** `go` keyword, `sync.WaitGroup`, `chan`, `select`, `sync.Mutex`, `sync.RWMutex`, `context.Context`, graceful shutdown patterns, race detector (`-race`)
 - **Resources:** resources/CHANNELS_GUIDE.md, resources/CONTEXT_GUIDE.md, resources/MUTEX_GUIDE.md, resources/CONCURRENCY_DEBUGGING_GUIDE.md
 
 ##### 01.5 Channel Reinforcement (Supplementary)
@@ -531,6 +541,7 @@ Progress toward Junior Gopher status:
 
 **Date** | **Insight**
 ---------|------------
+2026-01-18 | **Graceful Shutdown Mastery - Race Conditions & Synchronization Deep Dive:** Completed exercises 11-13 (Rate Limiting, Context Integration, Graceful Shutdown). Exercise 13 was particularly challenging—required debugging multiple race conditions using `-race` flag. **Key patterns learned:** (1) Two-phase shutdown: stop accepting new work → wait for in-flight → exit. (2) Ready channel pattern: the `set` channel signals when `cancel` is assigned, preventing race between Run() and Shutdown(). (3) Send vs Close semantics: close() is a broadcast (all waiters wake), send is point-to-point—use close for signals, send for data. (4) WaitGroup happens-before: all Add() calls must complete before Wait() is called—solved by waiting for accept loop to exit before calling Wait(). (5) Always send to error channels (nil or error), not just on error—prevents deadlock when all workers succeed. **Mental model solidified:** Concurrent code requires thinking about "who writes, who reads, when" for every shared field.
 2026-01-13 | **Progress Assessment & Roadmap Decision:** Evaluated ~9 weeks of progress against original 32-week timeline. Key finding: progressing **4x faster** than planned, but via **non-linear path** (jumped from Module 02 → 09, skipping 03-08). This isn't "rushing" — it's fast progress with intentional gaps. Decision: **Stay the course** — finish concurrency (09) → databases (10) → performance (11) → backfill modules 03-08 → Phase 2 project-based learning. Risks accepted: Testing at 40%, Interfaces at 70%, Error handling patterns not deeply practiced. Projects (Weather CLI, Home Data Miner) provided organic learning for HTTP/packages. Full assessment documented in PROGRESS.md and CLAUDE.md.
 2026-01-12 | **Concurrency Deep Dive - Tier 2 Nearly Complete!** Completed 7/15 concurrency exercises (01-06 + 01.5 channel reinforcement). Mastered: WaitGroup + close + range pattern, select with timeout/nil channels, done channel priority checking, Mutex vs RWMutex selection, generic concurrent result collection with order preservation. Key realization: indexed result structs preserve order in concurrent processing. Currently on Exercise 07 (error handling patterns) - ProcessWithErrors, FirstError, ProcessResults complete. Two functions remaining: RunWithTimeout, ParallelFetch. Created MUTEX_GUIDE.md and extended TESTING_GUIDE.md with concurrency testing section. **Learning insight:** These patterns click when you feel the need for them in real code, not just exercises.
 2025-12-02 | **Major Milestone - Module 02 Complete + Recursion Mastery!** Verified all 19/19 Data Structures exercises passing. Recursion module at 10/13 (77%) with advanced topics (backtracking, memoization, N-Queens) mastered. Expression Evaluator (00.7/05) now fully working - implemented recursive descent parser with tokenization and operator precedence. **Ready for applied projects!** Starting Project 0 (Weather CLI) to practice HTTP, JSON, and code organization in a real context.
@@ -544,5 +555,5 @@ Progress toward Junior Gopher status:
 
 ---
 
-**Last Updated:** 2026-01-13
-**Next Review:** After completing Module 09 Tier 3 (Exercises 09-12)
+**Last Updated:** 2026-01-18
+**Next Review:** After completing Module 09 (Exercises 14-15 remaining: Semaphore/sync primitives, Capstone processor)
